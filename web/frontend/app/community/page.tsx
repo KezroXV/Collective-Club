@@ -15,15 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  MessageSquare,
-  Heart,
-  Plus,
-  Search,
-  ArrowLeft,
-  Send,
-} from "lucide-react";
+import { MessageSquare, Plus, Search, ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
+import ReactionPicker from "@/components/ReactionPicker";
 
 interface Post {
   id: string;
@@ -348,10 +342,11 @@ export default function CommunityPage() {
                       <MessageSquare className="h-4 w-4" />
                       {post._count.comments} commentaires
                     </Button>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-4 w-4" />
-                      {post._count.reactions} réactions
-                    </div>
+                    <ReactionPicker
+                      postId={post.id}
+                      currentUserId={currentUser?.id || ""}
+                      onReactionUpdate={fetchPosts}
+                    />
                   </div>
 
                   {/* Comments Section */}
