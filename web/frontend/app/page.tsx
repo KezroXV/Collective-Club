@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -267,191 +268,210 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      {/* Section unifiée: Filtres + Posts */}
+      <div className="bg-white min-h-screen">
+        <div className="container mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Top Row: Filter + Search + Create Button */}
+            <div className="flex items-center gap-6 mb-8">
+              <Button
+                variant="outline"
+                className="gap-2 text-sm px-5 py-2.5 h-auto border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Filter className="h-4 w-4" />
+                Filtrer
+              </Button>
 
-      {/* Category Filter */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-6">
-          {/* Top Row: Filter + Search + Create Button */}
-          <div className="flex items-center gap-4 py-4">
-            <Button
-              variant="outline"
-              className="gap-2 text-sm px-4 py-2 h-auto border-gray-300"
-            >
-              <Filter className="h-4 w-4" />
-              Filtrer
-            </Button>
+              <div className="relative flex-1 max-w-lg">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Rechercher par nom ou par post..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
+                />
+              </div>
 
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher par nom ou par post..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
+              <Link href="/community">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 px-6 py-2.5 h-11 rounded-lg shadow-sm">
+                  <Plus className="h-4 w-4" />
+                  Créer un post
+                </Button>
+              </Link>
             </div>
 
-            <Link href="/community">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 px-4 py-2 h-10">
-                <Plus className="h-4 w-4" />
-                Créer un post
-              </Button>
-            </Link>
-          </div>
+            {/* Categories Row avec ligne de séparation */}
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-4 overflow-x-auto pb-2">
+                {CATEGORIES.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`flex items-center gap-2.5 px-4 py-2 rounded-full whitespace-nowrap transition-all text-sm font-medium ${
+                      selectedCategory === category.id
+                        ? "bg-blue-50 border border-blue-200 text-blue-700 shadow-sm"
+                        : "hover:bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full ${category.color}`}
+                    ></div>
+                    <span>{category.name}</span>
+                    {category.count > 0 && (
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full min-w-[22px] text-center font-medium">
+                        {category.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
 
-          {/* Categories Row */}
-          <div className="flex items-center gap-2 pb-4 overflow-x-auto">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-sm border ${
-                  selectedCategory === category.id
-                    ? "bg-blue-50 border-blue-500 text-blue-700 shadow-sm"
-                    : "hover:bg-gray-50 border-gray-200 text-gray-600"
-                }`}
-              >
-                <div className={`w-3 h-3 rounded-full ${category.color}`}></div>
-                <span className="font-medium">{category.name}</span>
-                {category.count > 0 && (
-                  <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {category.count}
-                  </span>
-                )}
-              </button>
-            ))}
-
-            {/* Add More Button */}
-            <Button
-              variant="outline"
-              className="gap-1 whitespace-nowrap text-sm px-3 py-1.5 h-auto border-dashed border-gray-300"
-            >
-              Voir plus
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-8">
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-gray-400 mb-6">
-                <MessageSquare className="h-20 w-20 mx-auto" />
+                {/* Add More Button */}
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap text-sm px-4 py-2 h-auto border-dashed border-gray-300 rounded-full hover:bg-gray-50"
+                >
+                  Voir plus
+                  <Plus className="h-3 w-3" />
+                </Button>
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3">
-                {searchQuery || selectedCategory !== "all"
-                  ? "Aucun post trouvé"
-                  : "Aucun post pour l'instant"}
-              </h3>
-              <p className="text-gray-600 mb-8 text-lg">
-                {searchQuery || selectedCategory !== "all"
-                  ? "Essayez de modifier vos filtres de recherche"
-                  : "Soyez le premier à partager quelque chose !"}
-              </p>
-              {currentUser && (
-                <Link href="/community">
-                  <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg">
-                    Créer le premier post
-                  </Button>
-                </Link>
+
+              {/* Ligne de séparation avec indicateur de scroll */}
+              <div className="relative">
+                <div className="w-full h-px bg-gray-200"></div>
+                {/* Petites flèches de navigation */}
+                <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-2">
+                  <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 border-l border-b border-gray-600 transform rotate-45"></div>
+                  </div>
+                </div>
+                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-2">
+                  <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 border-r border-b border-gray-600 transform -rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Posts Content */}
+            <div className="space-y-12">
+              {filteredPosts.length === 0 ? (
+                <div className="text-center py-24">
+                  <div className="text-gray-400 mb-8">
+                    <MessageSquare className="h-24 w-24 mx-auto" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    {searchQuery || selectedCategory !== "all"
+                      ? "Aucun post trouvé"
+                      : "Aucun post pour l'instant"}
+                  </h3>
+                  <p className="text-gray-600 mb-10 text-lg leading-relaxed max-w-md mx-auto">
+                    {searchQuery || selectedCategory !== "all"
+                      ? "Essayez de modifier vos filtres de recherche"
+                      : "Soyez le premier à partager quelque chose !"}
+                  </p>
+                  {currentUser && (
+                    <Link href="/community">
+                      <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg rounded-lg shadow-sm">
+                        Créer le premier post
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                filteredPosts.map((post, index) => (
+                  <div
+                    key={post.id}
+                    className={`pb-12 ${
+                      index !== filteredPosts.length - 1
+                        ? "border-b border-gray-100"
+                        : ""
+                    }`}
+                  >
+                    {/* Post Header */}
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-13 w-13 ring-3 ring-gray-100 ring-offset-1">
+                          <AvatarImage src={post.author.avatar} />
+                          <AvatarFallback className="bg-blue-600 text-white font-semibold text-lg">
+                            {getInitials(post.author.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-base leading-tight">
+                            {post.author.name}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            {formatDate(post.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-10 w-10 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </div>
+
+                    {/* Post Title and Content */}
+                    <div className="mb-8 pl-16">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4 leading-tight">
+                        {post.title}
+                      </h2>
+                      <p className="text-gray-700 text-base leading-relaxed">
+                        {post.content}
+                      </p>
+                    </div>
+
+                    {/* Post Image */}
+                    {post.imageUrl && (
+                      <div className="mb-8 pl-16">
+                        <div className="rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                          <img
+                            src={post.imageUrl}
+                            alt={post.title}
+                            className="w-full h-auto max-h-96 object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Post Actions */}
+                    <div className="flex items-center gap-8 pl-16">
+                      <button className="flex items-center gap-3 text-gray-500 hover:text-red-500 transition-colors group">
+                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-red-50 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-red-200">
+                          <Heart className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            {post._count.reactions}
+                          </span>
+                        </div>
+                      </button>
+
+                      <Link
+                        href={`/community?postId=${post.id}`}
+                        className="flex items-center gap-3 text-gray-500 hover:text-blue-500 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-blue-200">
+                          <MessageSquare className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            {post._count.comments}
+                          </span>
+                        </div>
+                      </Link>
+
+                      <button className="flex items-center gap-3 text-gray-500 hover:text-gray-700 transition-colors group ml-auto">
+                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-gray-100 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-gray-300">
+                          <Share2 className="h-4 w-4" />
+                          <span className="text-sm">Partager</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
-          ) : (
-            filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
-              >
-                {/* Post Header */}
-                <div className="px-8 pt-8 pb-4">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12 ring-2 ring-gray-100">
-                        <AvatarImage src={post.author.avatar} />
-                        <AvatarFallback className="bg-blue-600 text-white font-semibold text-lg">
-                          {getInitials(post.author.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-gray-900 text-base">
-                          {post.author.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {formatDate(post.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-10 w-10 p-0 text-gray-400 hover:text-gray-600 rounded-full"
-                    >
-                      <MoreHorizontal className="h-5 w-5" />
-                    </Button>
-                  </div>
-
-                  {/* Post Title and Content */}
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3 leading-tight">
-                      {post.title}
-                    </h2>
-                    <p className="text-gray-700 text-base leading-relaxed">
-                      {post.content}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Image */}
-                {post.imageUrl && (
-                  <div className="px-8 mb-6">
-                    <div className="rounded-2xl overflow-hidden">
-                      <img
-                        src={post.imageUrl}
-                        alt={post.title}
-                        className="w-full h-auto max-h-96 object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Post Actions */}
-                <div className="px-8 pb-8">
-                  <div className="flex items-center gap-8">
-                    <button className="flex items-center gap-3 text-gray-500 hover:text-red-500 transition-colors group">
-                      <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-red-50 px-4 py-2 rounded-full transition-colors">
-                        <Heart className="h-5 w-5" />
-                        <span className="text-sm font-medium">
-                          {post._count.reactions}
-                        </span>
-                      </div>
-                    </button>
-
-                    <Link
-                      href={`/community?postId=${post.id}`}
-                      className="flex items-center gap-3 text-gray-500 hover:text-blue-500 transition-colors group"
-                    >
-                      <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-blue-50 px-4 py-2 rounded-full transition-colors">
-                        <MessageSquare className="h-5 w-5" />
-                        <span className="text-sm font-medium">
-                          {post._count.comments}
-                        </span>
-                      </div>
-                    </Link>
-
-                    <button className="flex items-center gap-3 text-gray-500 hover:text-gray-700 transition-colors group ml-auto">
-                      <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-gray-100 px-4 py-2 rounded-full transition-colors">
-                        <Share2 className="h-5 w-5" />
-                        <span className="text-sm">Partager</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+          </div>
         </div>
       </div>
     </div>
