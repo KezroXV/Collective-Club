@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { shopifyApi } from "@shopify/shopify-api";
+import { shopifyApi, ApiVersion } from "@shopify/shopify-api";
+import "@shopify/shopify-api/adapters/node";
 
 const shopify = shopifyApi({
   apiKey: process.env.SHOPIFY_API_KEY!,
@@ -10,8 +11,9 @@ const shopify = shopifyApi({
     "read_content",
     "write_content",
   ],
-  hostName: process.env.HOST!,
-  apiVersion: "2024-07",
+  hostName: process.env.HOST!.replace(/https?:\/\//, ""),
+  apiVersion: ApiVersion.October24, // ✅ Correction ici
+  isEmbeddedApp: true,
 });
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -26,10 +28,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // ✅ Correction de la syntaxe
     const authRoute = await shopify.auth.begin({
-      shop,
+      shop: shop,
       callbackPath: "/api/auth/callback",
       isOnline: false,
+      rawRequest: request,
     });
 
     return NextResponse.redirect(authRoute);

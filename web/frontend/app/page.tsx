@@ -1,103 +1,349 @@
-import Image from "next/image";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  MessageSquare,
+  TrendingUp,
+  Plus,
+  Settings,
+  ArrowRight,
+} from "lucide-react";
+import Link from "next/link";
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  author: {
+    name: string;
+    email: string;
+  };
+  _count: {
+    comments: number;
+    reactions: number;
+  };
+  createdAt: string;
+}
+
+export default function HomePage() {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalUsers: 0,
+    activeToday: 0,
+  });
+
+  const searchParams = useSearchParams();
+
+  // ✅ Détecter l'auth Shopify et créer l'user
+  useEffect(() => {
+    const shop = searchParams.get("shop");
+    const hmac = searchParams.get("hmac");
+
+    if (shop && hmac) {
+      console.log("🔥 Shopify auth detected for shop:", shop);
+      createOrUpdateUser(shop);
+    }
+  }, [searchParams]);
+
+  // ✅ Créer/récupérer l'user
+  const createOrUpdateUser = async (shop: string) => {
+    try {
+      console.log("🔥 Creating user for shop:", shop);
+
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: `admin@${shop}`,
+          name: `Admin de ${shop}`,
+          shopDomain: shop,
+        }),
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        setCurrentUser(user);
+
+        // ✅ NOUVEAU : Stocker dans localStorage
+        localStorage.setItem("currentUser", JSON.stringify(user));
+
+        console.log("✅ User created/updated:", user.id);
+      }
+    } catch (error) {
+      console.error("❌ Error creating user:", error);
+    }
+  };
+
+  // ✅ Récupérer les posts
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch("/api/posts");
+      const data = await response.json();
+      setPosts(data);
+
+      // Calculer les stats
+      setStats({
+        totalPosts: data.length,
+        totalUsers: new Set(data.map((p: Post) => p.author.email)).size,
+        activeToday: data.filter((p: Post) => {
+          const today = new Date().toDateString();
+          const postDate = new Date(p.createdAt).toDateString();
+          return today === postDate;
+        }).length,
+      });
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
+
+  // ✅ Handler pour créer un post
+  const handleCreatePost = (): void => {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 1000);
+  };
+
+  // Récupérer les stats depuis l'API
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Collective Club
+            </h1>
+            <p className="text-muted-foreground mt-2 text-lg">
+              Forum communautaire pour votre boutique Shopify
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link href="/admin">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings className="h-4 w-4" />
+                Admin
+              </Button>
+            </Link>
+            <Link href="/community">
+              <Button
+                disabled={loading}
+                className="gap-2"
+                onClick={handleCreatePost}
+              >
+                <Plus className="h-4 w-4" />
+                {loading ? "Chargement..." : "Créer un post"}
+              </Button>
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Welcome Card */}
+            <Card className="border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  🎉 Votre forum est maintenant connecté !
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Base de données PostgreSQL + Prisma + API routes
+                  fonctionnelles
+                  {currentUser && (
+                    <span className="block mt-1 text-green-600">
+                      ✅ Utilisateur connecté: {currentUser.name}
+                    </span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-lg">✅ Terminé :</h3>
+                    <div className="space-y-2">
+                      <Badge
+                        variant="default"
+                        className="bg-green-100 text-green-800 border-green-200"
+                      >
+                        ✅ Auth Shopify + DB
+                      </Badge>
+                      <br />
+                      <Badge
+                        variant="default"
+                        className="bg-green-100 text-green-800 border-green-200"
+                      >
+                        ✅ API Posts/Users
+                      </Badge>
+                      <br />
+                      <Badge
+                        variant="default"
+                        className="bg-green-100 text-green-800 border-green-200"
+                      >
+                        ✅ Interface moderne
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-lg">
+                      🔄 Prochainement :
+                    </h3>
+                    <div className="space-y-2">
+                      <Badge variant="secondary">🔄 CRUD complet</Badge>
+                      <br />
+                      <Badge variant="secondary">🔄 Upload images</Badge>
+                      <br />
+                      <Badge variant="secondary">🔄 Réactions</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <Link href="/community">
+                    <Button variant="outline" className="w-full group">
+                      Tester le forum maintenant
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Posts */}
+            {posts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Posts récents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {posts.slice(0, 3).map((post) => (
+                      <div
+                        key={post.id}
+                        className="border-l-4 border-primary/20 pl-4"
+                      >
+                        <h4 className="font-semibold">{post.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Par {post.author.name} • {post._count.comments}{" "}
+                          commentaires
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Stats Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Statistiques en temps réel
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-full">
+                      <MessageSquare className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Posts</span>
+                      <p className="text-xs text-muted-foreground">
+                        Total publié
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-lg font-bold">
+                    {stats.totalPosts}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-full">
+                      <Users className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Membres</span>
+                      <p className="text-xs text-muted-foreground">Inscrits</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-lg font-bold">
+                    {stats.totalUsers}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-full">
+                      <TrendingUp className="h-4 w-4 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Actifs</span>
+                      <p className="text-xs text-muted-foreground">
+                        Aujourd&apos;hui
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-lg font-bold">
+                    {stats.activeToday}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Progress Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Progression du projet</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Phase 1: Fondations</span>
+                    <span className="font-semibold">90%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full w-[90%]"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Phase 2: Forum</span>
+                    <span className="font-semibold">20%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full w-[20%]"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

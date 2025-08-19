@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AppProvider } from "@shopify/polaris";
-import "@shopify/polaris/build/esm/styles.css";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,7 +27,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppProvider i18n={{}}>{children}</AppProvider>
+        <div className="min-h-screen bg-background font-sans antialiased">
+          {children}
+        </div>
       </body>
     </html>
   );

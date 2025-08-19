@@ -3,8 +3,8 @@
 client_id = "b4e0f05c3b167ee4454a2bb3785bf717"
 name = "Collective Club"
 handle = "collective-club"
-application_url = "https://shopify.dev/apps/default-app-home"
-embedded = true
+application_url = "http://localhost:3000/"
+embedded = false
 
 [build]
 include_config_on_deploy = true
@@ -14,10 +14,10 @@ api_version = "2025-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = ""
+scopes = "read_content,read_customers,write_content,write_customers"
 
 [auth]
-redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+redirect_urls = [ "http://localhost:3000/api/auth/callback" ]
 
 [pos]
 embedded = false
