@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Share2, Heart } from "lucide-react";
+import { MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import CreatePostModal from "@/components/CreatePostModal";
 import { toast } from "sonner";
 import PollDisplay from "@/components/PollDisplay";
+import ReactionPicker from "@/components/ReactionPicker";
 
 interface Post {
   id: string;
@@ -264,15 +265,11 @@ export default function HomePage() {
 
                       {/* Post Actions */}
                       <div className="flex items-center gap-6 pl-16">
-                        <Button
-                          variant="outline"
-                          className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-red-50 hover:border-red-200 text-gray-600 hover:text-red-600"
-                        >
-                          <Heart className="h-4 w-4" />
-                          <Badge className="rounded-full bg-white text-gray-600 border border-gray-200 px-2 py-0 text-xs font-medium">
-                            {post._count.reactions}
-                          </Badge>
-                        </Button>
+                        <ReactionPicker
+                          postId={post.id}
+                          currentUserId={currentUser?.id || ""}
+                          onReactionUpdate={fetchPosts}
+                        />
 
                         <Link
                           href={`/community?postId=${post.id}`}
@@ -291,17 +288,13 @@ export default function HomePage() {
 
                         <Button
                           variant="outline"
-                          className="ml-auto flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-700 hover:text-gray-700"
+                          className="ml-auto flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-600"
                           onClick={() => {
                             const url = `${window.location.origin}/community/${post.id}`;
-                            navigator.clipboard
-                              .writeText(url)
-                              .then(() => {
-                                toast.success("Lien copié !");
-                              })
-                              .catch(() => {
-                                toast.error("Impossible de copier le lien");
-                              });
+                            navigator.clipboard.writeText(url);
+                            toast.success(
+                              "Lien copié dans le presse-papiers !"
+                            );
                           }}
                         >
                           <Share2 className="h-4 w-4" />
