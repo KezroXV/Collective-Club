@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,53 +20,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-
-const CATEGORIES = [
-  {
-    id: "all",
-    name: "Tout",
-    color: "bg-gray-400",
-    count: 0,
-  },
-  {
-    id: "maison",
-    name: "Maison",
-    color: "bg-orange-500",
-    count: 5,
-  },
-  {
-    id: "tech",
-    name: "Tech",
-    color: "bg-green-500",
-    count: 8,
-  },
-  {
-    id: "artisanat",
-    name: "Artisanat",
-    color: "bg-pink-500",
-    count: 3,
-  },
-  {
-    id: "voyage",
-    name: "Voyage",
-    color: "bg-blue-500",
-    count: 12,
-  },
-  {
-    id: "cosmetique",
-    name: "Cosmétique",
-    color: "bg-purple-500",
-    count: 6,
-  },
-  {
-    id: "revente",
-    name: "Revente",
-    color: "bg-yellow-500",
-    count: 4,
-  },
-];
 
 const SORT_OPTIONS = [
   {
@@ -86,6 +42,15 @@ const SORT_OPTIONS = [
   },
 ];
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+  _count: {
+    posts: number;
+  };
+}
+
 interface CategoryFilterProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
@@ -104,10 +69,41 @@ export default function CategoryFilter({
   onSortChange,
 }: CategoryFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const MAX_VISIBLE = 7;
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const visibleCategories = CATEGORIES.slice(0, MAX_VISIBLE);
-  const overflowCategories = CATEGORIES.slice(MAX_VISIBLE);
+  const MAX_VISIBLE = 6; // Réduire pour laisser place à "Tout"
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Ajouter "Tout" en premier
+  const allCategories = [
+    {
+      id: "all",
+      name: "Tout",
+      color: "bg-gray-400",
+      _count: { posts: 0 },
+    },
+    ...categories,
+  ];
+
+  const visibleCategories = allCategories.slice(0, MAX_VISIBLE + 1);
+  const overflowCategories = allCategories.slice(MAX_VISIBLE + 1);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -116,6 +112,20 @@ export default function CategoryFilter({
 
   const currentSortLabel =
     SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Nouveau";
+
+  if (loading) {
+    return (
+      <div className="bg-white">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center gap-6 py-6">
+            <div className="h-12 w-32 bg-gray-200 rounded-2xl animate-pulse"></div>
+            <div className="h-14 flex-1 max-w-2xl bg-gray-200 rounded-2xl animate-pulse"></div>
+            <div className="h-12 w-40 bg-gray-200 rounded-2xl animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">
@@ -152,21 +162,32 @@ export default function CategoryFilter({
                 </DropdownMenuItem>
               ))}
 
-              {overflowCategories.map((category) => (
-                <DropdownMenuItem
-                  key={category.id}
-                  onClick={() => onCategoryChange(category.id)}
-                  className="flex items-center gap-3 py-2"
-                >
-                  <span
-                    className={`w-3 h-3 rounded-full ${category.color}`}
-                  ></span>
-                  <span className="flex-1">{category.name}</span>
-                  {selectedCategory === category.id && (
-                    <Check className="h-4 w-4 text-blue-600" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+              {overflowCategories.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Plus de catégories
+                  </DropdownMenuLabel>
+                  {overflowCategories.map((category) => (
+                    <DropdownMenuItem
+                      key={category.id}
+                      onClick={() => onCategoryChange(category.id)}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <span
+                        className={`w-3 h-3 rounded-full ${category.color}`}
+                      ></span>
+                      <span className="flex-1">{category.name}</span>
+                      <span className="text-xs text-gray-400">
+                        {category._count.posts}
+                      </span>
+                      {selectedCategory === category.id && (
+                        <Check className="h-4 w-4 text-blue-600" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -205,42 +226,13 @@ export default function CategoryFilter({
             >
               <div className={`w-3 h-3 rounded-full ${category.color}`}></div>
               <span>{category.name}</span>
+              {category._count.posts > 0 && category.id !== "all" && (
+                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  {category._count.posts}
+                </span>
+              )}
             </button>
           ))}
-
-          {/* Voir plus - maintenant juste pour les catégories supplémentaires */}
-          {overflowCategories.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="gap-2.5 whitespace-nowrap text-sm px-5 py-2 h-auto rounded-2xl border border-gray-300 bg-white hover:bg-gray-50 font-medium"
-                >
-                  Voir plus
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {overflowCategories.map((category) => (
-                  <DropdownMenuItem
-                    key={category.id}
-                    onClick={() => onCategoryChange(category.id)}
-                    className={`flex items-center gap-2 ${
-                      selectedCategory === category.id ? "text-blue-700" : ""
-                    }`}
-                  >
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${category.color}`}
-                    ></span>
-                    {category.name}
-                    {selectedCategory === category.id && (
-                      <Check className="h-4 w-4 ml-auto text-blue-600" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
 
           {/* Status indicator pour le tri actuel */}
           <div className="flex items-center gap-2 ml-auto text-sm text-gray-500">

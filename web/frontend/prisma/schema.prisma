@@ -31,13 +31,26 @@ model User {
   @@map("users")
   PollVote PollVote[]
 }
+model Category {
+  id          String @id @default(cuid())
+  name        String @unique
+  color       String // Ex: "bg-orange-500"
+  description String?
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts Post[]
+
+  @@map("categories")
+}
 
 model Post {
   id        String     @id @default(cuid())
   title     String
   content   String
   imageUrl  String?
-  category  String?
   isPinned  Boolean    @default(false)
   status    PostStatus @default(PUBLISHED)
   createdAt DateTime   @default(now())
@@ -46,9 +59,12 @@ model Post {
   author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
 
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   // ✅ CHANGÉ de String? category à relation
+
   comments  Comment[]
   reactions Reaction[]
-  poll      Poll?     // ✅ NOUVEAU - Sondage optionnel
+  poll      Poll?
 
   @@map("posts")
 }
