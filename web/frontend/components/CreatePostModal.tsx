@@ -1,0 +1,321 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { X, Plus, Loader2, Upload, Image as ImageIcon } from "lucide-react";
+
+const CATEGORIES = [
+  { id: "maison", name: "Maison", color: "bg-orange-500" },
+  { id: "tech", name: "Tech", color: "bg-green-500" },
+  { id: "artisanat", name: "Artisanat", color: "bg-pink-500" },
+  { id: "voyage", name: "Voyage", color: "bg-blue-500" },
+  { id: "cosmetique", name: "Cosmétique", color: "bg-purple-500" },
+  { id: "revente", name: "Revente", color: "bg-yellow-500" },
+];
+
+interface CreatePostModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentUser: any;
+  onPostCreated: () => void;
+}
+
+export default function CreatePostModal({
+  isOpen,
+  onClose,
+  currentUser,
+  onPostCreated,
+}: CreatePostModalProps) {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setSelectedCategory("");
+    setImageUrl("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim() || !content.trim() || !currentUser) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          content: content.trim(),
+          category: selectedCategory || undefined,
+          imageUrl: imageUrl || undefined,
+          authorId: currentUser.id,
+        }),
+      });
+
+      if (response.ok) {
+        handleClose();
+        onPostCreated();
+      } else {
+        console.error("Error creating post");
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleImageUpload = useCallback((file: File) => {
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleImageUpload(file);
+      }
+    },
+    [handleImageUpload]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            Créer un post
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Titre */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium">
+              Titre
+            </Label>
+            <Input
+              id="title"
+              placeholder="J'ai une idée de boutique mais je ne sais pas comment choisir, comment vous avez eu votre idée vous ?"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="h-12 text-base"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="content" className="text-sm font-medium">
+              Description
+            </Label>
+            <Textarea
+              id="content"
+              placeholder="Salut, je ne sais pas comment choisir entre quelques idées de..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[120px] text-base resize-none"
+            />
+          </div>
+
+          {/* Upload d'image - CUSTOM */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Ajouter une image</Label>
+
+            {imageUrl ? (
+              <Card className="relative overflow-hidden group">
+                <CardContent className="p-0">
+                  <img
+                    src={imageUrl}
+                    alt="Uploaded"
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="bg-red-500 hover:bg-red-600"
+                      onClick={() => setImageUrl("")}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card
+                className={`border-2 border-dashed cursor-pointer transition-all duration-200 ${
+                  isDragOver
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                }`}
+                onClick={() => fileInputRef.current?.click()}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+              >
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <div
+                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors ${
+                      isDragOver ? "bg-blue-100" : "bg-gray-100"
+                    }`}
+                  >
+                    <ImageIcon
+                      className={`h-8 w-8 ${
+                        isDragOver ? "text-blue-500" : "text-gray-400"
+                      }`}
+                    />
+                  </div>
+
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {isDragOver
+                      ? "Déposez votre image ici"
+                      : "Ajouter une image"}
+                  </h3>
+
+                  <p className="text-sm text-gray-600 text-center mb-4">
+                    Glissez-déposez une image ou cliquez pour parcourir
+                  </p>
+
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      <Upload className="h-4 w-4" />
+                      Parcourir
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-3">
+                    PNG, JPG, GIF jusqu&apos;à 10MB
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+          </div>
+
+          {/* Catégories */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Ajouter une catégorie</Label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={
+                    selectedCategory === category.id ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    setSelectedCategory(
+                      selectedCategory === category.id ? "" : category.id
+                    )
+                  }
+                  className="gap-2 rounded-full transition-all"
+                >
+                  <div
+                    className={`w-3 h-3 rounded-full ${category.color}`}
+                  ></div>
+                  {category.name}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 rounded-full border-dashed opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            Annuler
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!title.trim() || !content.trim() || isSubmitting}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Publication...
+              </>
+            ) : (
+              "Publier"
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

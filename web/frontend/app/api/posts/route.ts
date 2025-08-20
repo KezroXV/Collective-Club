@@ -40,7 +40,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, authorId } = body;
+    const { title, content, imageUrl, category, authorId } = body; // ✅ AJOUTER imageUrl et category
 
     if (!title || !content || !authorId) {
       return NextResponse.json(
@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         content,
+        imageUrl, // ✅ AJOUTER
+        category, // ✅ AJOUTER
         authorId,
       },
       include: {

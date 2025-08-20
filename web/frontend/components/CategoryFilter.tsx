@@ -111,7 +111,7 @@ export default function CategoryFilter({
           </div>
 
           <Button
-            onClick={onCreatePost}
+            onClick={onCreatePost} // ✅ CORRIGÉ !
             className="bg-blue-600 hover:bg-blue-700 text-white gap-3 px-8 py-4 h-auto rounded-2xl shadow-sm font-medium text-base"
           >
             <div className="bg-white/20 rounded-full p-1">
@@ -121,7 +121,7 @@ export default function CategoryFilter({
           </Button>
         </div>
 
-        {/* Categories Row - une seule ligne, paddings compacts */}
+        {/* Categories Row */}
         <div className="flex items-center gap-3 pb-4 flex-nowrap">
           {visibleCategories.map((category) => (
             <button
@@ -138,7 +138,7 @@ export default function CategoryFilter({
             </button>
           ))}
 
-          {/* Voir plus - éléments restants dans un menu */}
+          {/* Voir plus */}
           {overflowCategories.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

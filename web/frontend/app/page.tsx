@@ -12,6 +12,7 @@ import HeroBanner from "@/components/HeroBanner";
 import CategoryFilter from "@/components/CategoryFilter";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import CreatePostModal from "@/components/CreatePostModal";
 
 interface Post {
   id: string;
@@ -33,6 +34,7 @@ interface Post {
 }
 
 export default function HomePage() {
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -161,7 +163,7 @@ export default function HomePage() {
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
                 onSearch={setSearchQuery}
-                onCreatePost={() => router.push("/community")}
+                onCreatePost={() => setShowCreateModal(true)} // ✅ CORRIGÉ !
               />
 
               {/* Séparateur entre filtres et posts */}
@@ -297,6 +299,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      <CreatePostModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        currentUser={currentUser}
+        onPostCreated={fetchPosts}
+      />
     </div>
   );
 }
