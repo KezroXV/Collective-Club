@@ -11,6 +11,10 @@ export async function GET() {
         author: {
           select: { id: true, name: true, email: true, avatar: true },
         },
+        category: {
+          // ✅ AJOUTER la relation category
+          select: { id: true, name: true, color: true },
+        },
         comments: {
           include: {
             author: {
@@ -40,7 +44,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, imageUrl, category, authorId } = body; // ✅ AJOUTER imageUrl et category
+    const { title, content, imageUrl, category, authorId } = body; // ✅ category reste tel quel depuis le front
 
     if (!title || !content || !authorId) {
       return NextResponse.json(
@@ -49,17 +53,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ NOUVEAU : Convertir category (nom) en categoryId
+    let categoryId = null;
+    if (category) {
+      const foundCategory = await prisma.category.findUnique({
+        where: { name: category },
+      });
+      if (foundCategory) {
+        categoryId = foundCategory.id;
+      }
+    }
+
     const post = await prisma.post.create({
       data: {
         title,
         content,
-        imageUrl, // ✅ AJOUTER
-        category, // ✅ AJOUTER
+        imageUrl,
+        categoryId, // ✅ UTILISER categoryId au lieu de category
         authorId,
       },
       include: {
         author: {
           select: { id: true, name: true, email: true, avatar: true },
+        },
+        category: {
+          // ✅ INCLURE la relation category
+          select: { id: true, name: true, color: true },
         },
         _count: {
           select: { comments: true, reactions: true },

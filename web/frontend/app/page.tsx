@@ -115,12 +115,15 @@ export default function HomePage() {
   }, []);
 
   // Filter posts
+  // Modifier le filtering par catégorie :
   useEffect(() => {
-    // Toujours travailler sur une copie pour éviter de muter l'état d'origine
-    let filtered = [...posts];
-    // Filter by category
+    let filtered = posts;
+
+    // Filter by category - CORRIGÉ
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((post) => post.category === selectedCategory);
+      filtered = filtered.filter(
+        (post) => post.category?.name === selectedCategory
+      );
     }
 
     // Filter by search
@@ -132,6 +135,7 @@ export default function HomePage() {
           post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+
     // Sort posts
     filtered = filtered.sort((a, b) => {
       switch (sortBy) {
@@ -144,13 +148,9 @@ export default function HomePage() {
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
         case "popular":
-          // Trier par nombre de réactions décroissant, puis par date la plus récente
-          if (b._count.reactions !== a._count.reactions) {
-            return b._count.reactions - a._count.reactions;
-          }
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+          const aReactions = a._count?.reactions || 0;
+          const bReactions = b._count?.reactions || 0;
+          return bReactions - aReactions;
         default:
           return 0;
       }

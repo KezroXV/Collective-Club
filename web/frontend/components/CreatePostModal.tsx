@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +54,9 @@ export default function CreatePostModal({
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", "", "", ""]);
   const [showPoll, setShowPoll] = useState(false);
-
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string; color: string }>
+  >([]);
   const resetForm = () => {
     setTitle("");
     setContent("");
@@ -137,6 +139,21 @@ export default function CreatePostModal({
     setIsDragOver(false);
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -270,16 +287,16 @@ export default function CreatePostModal({
           <div className="space-y-3">
             <Label className="text-sm font-medium">Ajouter une catégorie</Label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <Button
                   key={category.id}
                   variant={
-                    selectedCategory === category.id ? "default" : "outline"
+                    selectedCategory === category.name ? "default" : "outline"
                   }
                   size="sm"
                   onClick={() =>
                     setSelectedCategory(
-                      selectedCategory === category.id ? "" : category.id
+                      selectedCategory === category.name ? "" : category.name
                     )
                   }
                   className="gap-2 rounded-full transition-all"
