@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, Plus, Search, ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 import ReactionPicker from "@/components/ReactionPicker";
-
+//dqdqdzqzfdfzq
 interface Post {
   id: string;
   title: string;
