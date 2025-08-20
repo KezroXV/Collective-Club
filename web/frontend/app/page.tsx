@@ -51,10 +51,7 @@ export default function HomePage() {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
   const searchParams = useSearchParams();
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "popular">(
-    "newest"
-  );
-
+  const [sortBy, setSortBy] = useState("newest");
   // Auth user detection
   useEffect(() => {
     const shop = searchParams.get("shop");
@@ -119,8 +116,8 @@ export default function HomePage() {
 
   // Filter posts
   useEffect(() => {
-    let filtered = posts;
-
+    // Toujours travailler sur une copie pour éviter de muter l'état d'origine
+    let filtered = [...posts];
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter((post) => post.category === selectedCategory);
@@ -135,9 +132,32 @@ export default function HomePage() {
           post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+    // Sort posts
+    filtered = filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case "popular":
+          // Trier par nombre de réactions décroissant, puis par date la plus récente
+          if (b._count.reactions !== a._count.reactions) {
+            return b._count.reactions - a._count.reactions;
+          }
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        default:
+          return 0;
+      }
+    });
 
     setFilteredPosts(filtered);
-  }, [posts, selectedCategory, searchQuery]);
+  }, [posts, selectedCategory, searchQuery, sortBy]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-FR", {
@@ -174,39 +194,10 @@ export default function HomePage() {
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
                 onSearch={setSearchQuery}
-                onCreatePost={() => setShowCreateModal(true)} // ✅ CORRIGÉ !
+                onCreatePost={() => setShowCreateModal(true)}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
               />
-              <div className="flex items-center justify-between mb-6 px-6">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Posts de la communauté
-                </h2>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Trier par:</span>
-                  <div className="flex items-center border rounded-lg p-1">
-                    {[
-                      { value: "newest", label: "Nouveau", icon: Clock },
-                      { value: "oldest", label: "Ancien", icon: Calendar },
-                      {
-                        value: "popular",
-                        label: "Populaire",
-                        icon: TrendingUp,
-                      },
-                    ].map((sort) => (
-                      <Button
-                        key={sort.value}
-                        variant={sortBy === sort.value ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setSortBy(sort.value as any)}
-                        className="gap-1 h-8 px-3"
-                      >
-                        <sort.icon className="h-3 w-3" />
-                        {sort.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
               {/* Séparateur entre filtres et posts */}
               <div className="w-full h-px bg-gray-200 mb-6"></div>
 
@@ -245,33 +236,6 @@ export default function HomePage() {
                           : ""
                       }`}
                     >
-                      {/* Post Header */}
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-12 w-12 ring-2 ring-gray-100">
-                            <AvatarImage src={post.author.avatar} />
-                            <AvatarFallback className="bg-blue-600 text-white font-semibold text-lg">
-                              {getInitials(post.author.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-gray-900 text-base leading-tight">
-                              {post.author.name}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5">
-                              {formatDate(post.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-10 w-10 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <MoreHorizontal className="h-5 w-5" />
-                        </Button>
-                      </div>
-
                       {/* Post Title and Content */}
                       <div className="mb-6 pl-16">
                         <h2 className="text-[17px] md:text-[18px] font-semibold text-gray-900 mb-2 leading-tight line-clamp-1">
