@@ -2,10 +2,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Share2, MoreHorizontal, Heart } from "lucide-react";
+import {
+  MessageSquare,
+  Share2,
+  MoreHorizontal,
+  Heart,
+  Calendar,
+  Clock,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
@@ -13,6 +21,7 @@ import CategoryFilter from "@/components/CategoryFilter";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import CreatePostModal from "@/components/CreatePostModal";
+import { toast } from "sonner";
 
 interface Post {
   id: string;
@@ -42,7 +51,9 @@ export default function HomePage() {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "popular">(
+    "newest"
+  );
 
   // Auth user detection
   useEffect(() => {
@@ -165,7 +176,37 @@ export default function HomePage() {
                 onSearch={setSearchQuery}
                 onCreatePost={() => setShowCreateModal(true)} // ✅ CORRIGÉ !
               />
+              <div className="flex items-center justify-between mb-6 px-6">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Posts de la communauté
+                </h2>
 
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Trier par:</span>
+                  <div className="flex items-center border rounded-lg p-1">
+                    {[
+                      { value: "newest", label: "Nouveau", icon: Clock },
+                      { value: "oldest", label: "Ancien", icon: Calendar },
+                      {
+                        value: "popular",
+                        label: "Populaire",
+                        icon: TrendingUp,
+                      },
+                    ].map((sort) => (
+                      <Button
+                        key={sort.value}
+                        variant={sortBy === sort.value ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSortBy(sort.value as any)}
+                        className="gap-1 h-8 px-3"
+                      >
+                        <sort.icon className="h-3 w-3" />
+                        {sort.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               {/* Séparateur entre filtres et posts */}
               <div className="w-full h-px bg-gray-200 mb-6"></div>
 
@@ -285,7 +326,18 @@ export default function HomePage() {
 
                         <Button
                           variant="outline"
-                          className="ml-auto flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-600"
+                          className="ml-auto flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-700 hover:text-gray-700"
+                          onClick={() => {
+                            const url = `${window.location.origin}/community/${post.id}`;
+                            navigator.clipboard
+                              .writeText(url)
+                              .then(() => {
+                                toast.success("Lien copié !");
+                              })
+                              .catch(() => {
+                                toast.error("Impossible de copier le lien");
+                              });
+                          }}
                         >
                           <Share2 className="h-4 w-4" />
                           Partager

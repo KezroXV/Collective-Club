@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useCallback } from "react";
@@ -12,7 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, Plus, Loader2, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  X,
+  Plus,
+  Loader2,
+  Upload,
+  Image as ImageIcon,
+  BarChart3,
+} from "lucide-react";
 
 const CATEGORIES = [
   { id: "maison", name: "Maison", color: "bg-orange-500" },
@@ -43,6 +51,9 @@ export default function CreatePostModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", "", "", ""]);
+  const [showPoll, setShowPoll] = useState(false);
 
   const resetForm = () => {
     setTitle("");
@@ -290,7 +301,63 @@ export default function CreatePostModal({
             </div>
           </div>
         </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Ajouter un sondage</Label>
+            <Button
+              type="button"
+              variant={showPoll ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowPoll(!showPoll)}
+              className="gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              {showPoll ? "Retirer" : "Sondage"}
+            </Button>
+          </div>
 
+          {showPoll && (
+            <Card className="p-4 space-y-4">
+              {/* Question du sondage */}
+              <div className="space-y-2">
+                <Label htmlFor="poll-question" className="text-sm font-medium">
+                  Question du sondage
+                </Label>
+                <Input
+                  id="poll-question"
+                  placeholder="Quelle est votre couleur préférée ?"
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+
+              {/* Options du sondage */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Options (4 maximum)
+                </Label>
+                {pollOptions.map((option, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 w-6">
+                      {index + 1}.
+                    </span>
+                    <Input
+                      placeholder={`Option ${index + 1}`}
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...pollOptions];
+                        newOptions[index] = e.target.value;
+                        setPollOptions(newOptions);
+                      }}
+                      className="h-9"
+                    />
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button
