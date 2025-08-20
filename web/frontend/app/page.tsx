@@ -4,16 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  MessageSquare,
-  Share2,
-  MoreHorizontal,
-  Heart,
-  Calendar,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+import { MessageSquare, Share2, Heart } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
@@ -133,12 +124,13 @@ export default function HomePage() {
   // Filter posts
   // Modifier le filtering par catégorie :
   useEffect(() => {
-    let filtered = posts;
+    // Toujours cloner pour éviter les mutations in-place qui bloquent le re-render
+    let filtered = [...posts];
 
     // Filter by category - CORRIGÉ
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (post) => post.category?.name === selectedCategory
+        (post) => post.category?.id === selectedCategory
       );
     }
 
@@ -152,8 +144,8 @@ export default function HomePage() {
       );
     }
 
-    // Sort posts
-    filtered = filtered.sort((a, b) => {
+    // Sort posts (sur une copie)
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "newest":
           return (
@@ -172,27 +164,9 @@ export default function HomePage() {
       }
     });
 
-    setFilteredPosts(filtered);
+    // Toujours setter une nouvelle référence
+    setFilteredPosts(sorted);
   }, [posts, selectedCategory, searchQuery, sortBy]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getInitials = (name: string) => {
-    return (
-      name
-        ?.split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase() || "?"
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
