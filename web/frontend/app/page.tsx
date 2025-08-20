@@ -22,19 +22,35 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import CreatePostModal from "@/components/CreatePostModal";
 import { toast } from "sonner";
+import PollDisplay from "@/components/PollDisplay";
 
 interface Post {
   id: string;
   title: string;
   content: string;
   imageUrl?: string;
-  category?: string;
+  category?: {
+    id: string;
+    name: string;
+    color: string;
+  };
   author: {
     id: string;
     name: string;
     email: string;
     avatar?: string;
   };
+  poll?: {
+    id: string;
+    question: string;
+    options: Array<{
+      id: string;
+      text: string;
+      order: number;
+      _count: { votes: number };
+    }>;
+    _count: { votes: number };
+  } | null;
   _count: {
     comments: number;
     reactions: number;
@@ -258,6 +274,17 @@ export default function HomePage() {
                               className="w-full h-auto max-h-96 object-cover"
                             />
                           </div>
+                        </div>
+                      )}
+
+                      {/* Poll */}
+                      {post.poll && (
+                        <div className="mb-8 pl-16">
+                          <PollDisplay
+                            poll={post.poll}
+                            currentUser={currentUser ?? undefined}
+                            onVote={() => fetchPosts()}
+                          />
                         </div>
                       )}
 

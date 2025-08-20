@@ -85,11 +85,11 @@ model Poll {
   @@map("polls")
 }
 
-// ✅ OPTIONS DU SONDAGE
+// ✅ OPTIONS DU SONDAGE (max 4)
 model PollOption {
   id    String @id @default(cuid())
   text  String
-  order Int    // 0, 1, 2, 3 (max 4 options)
+  order Int    // 0, 1, 2, 3 (pour l'ordre)
   
   poll   Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
   pollId String
@@ -114,7 +114,7 @@ model PollVote {
   
   createdAt DateTime @default(now())
   
-  @@unique([userId, pollId]) // Un vote par user par sondage
+  @@unique([userId, pollId]) // Un seul vote par user par sondage
   @@map("poll_votes")
 }
 

@@ -62,6 +62,9 @@ export default function CreatePostModal({
     setContent("");
     setSelectedCategory("");
     setImageUrl("");
+    setShowPoll(false); // ✅ AJOUTER
+    setPollQuestion(""); // ✅ AJOUTER
+    setPollOptions(["", "", "", ""]); // ✅ AJOUTER
   };
 
   const handleClose = () => {
@@ -72,8 +75,36 @@ export default function CreatePostModal({
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim() || !currentUser) return;
 
+    // ✅ VALIDATION SONDAGE
+    if (
+      showPoll &&
+      (!pollQuestion.trim() ||
+        pollOptions.filter((opt) => opt.trim()).length < 2)
+    ) {
+      alert("Un sondage doit avoir une question et au moins 2 options");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // ✅ PRÉPARER LES DONNÉES DU SONDAGE
+      let pollData = null;
+      if (showPoll && pollQuestion.trim()) {
+        const validOptions = pollOptions
+          .filter((opt) => opt.trim())
+          .map((text, index) => ({
+            text: text.trim(),
+            order: index,
+          }));
+
+        if (validOptions.length >= 2) {
+          pollData = {
+            question: pollQuestion.trim(),
+            options: validOptions,
+          };
+        }
+      }
+
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,6 +114,7 @@ export default function CreatePostModal({
           category: selectedCategory || undefined,
           imageUrl: imageUrl || undefined,
           authorId: currentUser.id,
+          poll: pollData, // ✅ ENVOYER LES DONNÉES DU SONDAGE
         }),
       });
 

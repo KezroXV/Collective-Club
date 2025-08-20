@@ -18,16 +18,29 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, Plus, Search, ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 import ReactionPicker from "@/components/ReactionPicker";
+import PollDisplay from "@/components/PollDisplay";
 //dqdqdzqzfdfzq
 interface Post {
   id: string;
   title: string;
   content: string;
+  imageUrl?: string;
   author: {
     id: string;
     name: string;
     email: string;
   };
+  poll?: {
+    id: string;
+    question: string;
+    options: Array<{
+      id: string;
+      text: string;
+      order: number;
+      _count: { votes: number };
+    }>;
+    _count: { votes: number };
+  } | null;
   _count: {
     comments: number;
     reactions: number;
@@ -324,6 +337,16 @@ export default function CommunityPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{post.content}</p>
+
+                  {post.poll && (
+                    <div className="mb-4">
+                      <PollDisplay
+                        poll={post.poll}
+                        currentUser={currentUser ?? undefined}
+                        onVote={() => fetchPosts()}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <Button
