@@ -36,7 +36,6 @@ const SORT_OPTIONS = [
     icon: Calendar,
   },
   {
-<<<<<<< HEAD
     id: "tech",
     name: "Tech",
     color: "bg-green-500",
@@ -70,11 +69,9 @@ const SORT_OPTIONS = [
     color: "bg-yellow-500",
     textColor: "text-yellow-700",
     count: 4,
-=======
     value: "popular",
     label: "Plus likés",
     icon: Heart,
->>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
   },
 ];
 
@@ -233,21 +230,13 @@ export default function CategoryFilter({
               placeholder="Rechercher par nom ou par post..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-<<<<<<< HEAD
-              className="pl-10 h-10 border-gray-200 focus:border-primary focus:ring-primary"
-=======
               className="pl-14 h-14 border border-gray-300 focus:border-primary focus:ring-primary rounded-2xl text-base bg-white"
->>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
             />
           </div>
 
           <Button
             onClick={onCreatePost}
-<<<<<<< HEAD
-            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-4 py-2 h-10"
-=======
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-3 px-8 py-4 h-auto rounded-2xl shadow-sm font-medium text-base"
->>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
           >
             Créer un post
             <div className="bg-white rounded-full p-1">
@@ -264,13 +253,8 @@ export default function CategoryFilter({
               onClick={() => onCategoryChange(category.id)}
               className={`flex items-center gap-2.5 px-4 py-2 rounded-2xl whitespace-nowrap transition-all text-sm font-medium border ${
                 selectedCategory === category.id
-<<<<<<< HEAD
-                  ? "bg-primary/10 border-primary text-primary shadow-sm"
-                  : "hover:bg-gray-50 border-gray-200 text-gray-600"
-=======
                   ? "bg-white text-gray-900 border-gray-300 ring-2 ring-blue-300"
                   : "bg-white text-gray-900 border-gray-300 hover:bg-gray-50"
->>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
               }`}
             >
               <div className={`w-3 h-3 rounded-full ${category.color}`}></div>
