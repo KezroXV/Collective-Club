@@ -36,39 +36,6 @@ const SORT_OPTIONS = [
     icon: Calendar,
   },
   {
-    id: "tech",
-    name: "Tech",
-    color: "bg-green-500",
-    textColor: "text-green-700",
-    count: 8,
-  },
-  {
-    id: "artisanat",
-    name: "Artisanat",
-    color: "bg-pink-500",
-    textColor: "text-pink-700",
-    count: 3,
-  },
-  {
-    id: "voyage",
-    name: "Voyage",
-    color: "bg-primary",
-    textColor: "text-primary",
-    count: 12,
-  },
-  {
-    id: "cosmetique",
-    name: "Cosmétique",
-    color: "bg-purple-500",
-    textColor: "text-purple-700",
-    count: 6,
-  },
-  {
-    id: "revente",
-    name: "Revente",
-    color: "bg-yellow-500",
-    textColor: "text-yellow-700",
-    count: 4,
     value: "popular",
     label: "Plus likés",
     icon: Heart,
@@ -184,10 +151,14 @@ export default function CategoryFilter({
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => onSortChange?.(option.value)}
+                  onClick={() =>
+                    option.value !== undefined && onSortChange?.(option.value)
+                  }
                   className="flex items-center gap-3 py-2"
                 >
-                  <option.icon className="h-4 w-4 text-gray-500" />
+                  {option.icon && (
+                    <option.icon className="h-4 w-4 text-gray-500" />
+                  )}
                   <span className="flex-1">{option.label}</span>
                   {sortBy === option.value && (
                     <Check className="h-4 w-4 text-primary" />
