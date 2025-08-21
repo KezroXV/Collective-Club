@@ -50,7 +50,7 @@ export default function Header({ currentUser }: HeaderProps) {
                   variant={item.current ? "default" : "ghost"}
                   className={`px-4 py-2 rounded-full ${
                     item.current
-                      ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      ? "bg-primary/10 text-primary hover:bg-primary/20"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
@@ -125,7 +125,7 @@ export default function Header({ currentUser }: HeaderProps) {
                   <Button
                     variant={item.current ? "default" : "ghost"}
                     className={`w-full justify-start ${
-                      item.current ? "bg-blue-100 text-blue-700" : ""
+                      item.current ? "bg-primary/10 text-primary" : ""
                     }`}
                   >
                     {item.name}

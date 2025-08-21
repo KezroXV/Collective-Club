@@ -42,7 +42,7 @@ const CATEGORIES = [
   { id: "maison", name: "Maison", color: "bg-orange-500", count: 5 },
   { id: "tech", name: "Tech", color: "bg-green-500", count: 8 },
   { id: "artisanat", name: "Artisanat", color: "bg-pink-500", count: 3 },
-  { id: "voyage", name: "Voyage", color: "bg-blue-500", count: 12 },
+  { id: "voyage", name: "Voyage", color: "bg-primary", count: 12 },
   { id: "cosmetique", name: "Cosmétique", color: "bg-purple-500", count: 6 },
   { id: "revente", name: "Revente", color: "bg-yellow-500", count: 4 },
 ];
@@ -196,7 +196,7 @@ export default function HomePage() {
             <nav className="flex items-center space-x-1">
               <Button
                 variant="default"
-                className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-full"
+                className="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-full"
               >
                 Accueil
               </Button>
@@ -239,7 +239,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Banner */}
-      <div className="relative h-40 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 overflow-hidden">
+      <div className="relative h-40 bg-gradient-to-br from-primary via-primary to-secondary overflow-hidden">
         {/* Formes géométriques diagonales */}
         <div className="absolute inset-0">
           {/* Grande forme diagonale gauche */}
@@ -247,10 +247,10 @@ export default function HomePage() {
           {/* Forme diagonale droite */}
           <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-black/15 transform rotate-45"></div>
           {/* Forme centrale */}
-          <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-indigo-800/20 transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
+          <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-secondary/20 transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
           {/* Petites formes d'accent */}
-          <div className="absolute top-8 right-32 w-12 h-12 bg-blue-400/20 transform rotate-45"></div>
-          <div className="absolute bottom-8 left-32 w-8 h-8 bg-indigo-300/30 transform rotate-45"></div>
+          <div className="absolute top-8 right-32 w-12 h-12 bg-accent/20 transform rotate-45"></div>
+          <div className="absolute bottom-8 left-32 w-8 h-8 bg-secondary/30 transform rotate-45"></div>
         </div>
 
         {/* Overlay gradient pour plus de profondeur */}
@@ -262,7 +262,7 @@ export default function HomePage() {
             <h1 className="text-2xl md:text-3xl font-bold mb-2">
               Forum Communautaire
             </h1>
-            <p className="text-blue-100 text-base opacity-90">
+            <p className="text-primary/20 text-base opacity-90">
               Partagez vos idées et discutez avec la communauté
             </p>
           </div>
@@ -288,12 +288,12 @@ export default function HomePage() {
                   placeholder="Rechercher par nom ou par post..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
+                  className="pl-12 h-11 border-gray-300 focus:border-primary focus:ring-primary rounded-lg text-sm"
                 />
               </div>
 
               <Link href="/community">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 px-6 py-2.5 h-11 rounded-lg shadow-sm">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-6 py-2.5 h-11 rounded-lg shadow-sm">
                   <Plus className="h-4 w-4" />
                   Créer un post
                 </Button>
@@ -309,7 +309,7 @@ export default function HomePage() {
                     onClick={() => setSelectedCategory(category.id)}
                     className={`flex items-center gap-2.5 px-4 py-2 rounded-full whitespace-nowrap transition-all text-sm font-medium ${
                       selectedCategory === category.id
-                        ? "bg-blue-50 border border-blue-200 text-blue-700 shadow-sm"
+                        ? "bg-primary/10 border border-primary/30 text-primary shadow-sm"
                         : "hover:bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300"
                     }`}
                   >
@@ -371,7 +371,7 @@ export default function HomePage() {
                   </p>
                   {currentUser && (
                     <Link href="/community">
-                      <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg rounded-lg shadow-sm">
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-lg shadow-sm">
                         Créer le premier post
                       </Button>
                     </Link>
@@ -392,7 +392,7 @@ export default function HomePage() {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-13 w-13 ring-3 ring-gray-100 ring-offset-1">
                           <AvatarImage src={post.author.avatar} />
-                          <AvatarFallback className="bg-blue-600 text-white font-semibold text-lg">
+                          <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
                             {getInitials(post.author.name)}
                           </AvatarFallback>
                         </Avatar>
@@ -450,9 +450,9 @@ export default function HomePage() {
 
                       <Link
                         href={`/community?postId=${post.id}`}
-                        className="flex items-center gap-3 text-gray-500 hover:text-blue-500 transition-colors group"
+                        className="flex items-center gap-3 text-gray-500 hover:text-primary transition-colors group"
                       >
-                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-blue-200">
+                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-primary/10 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-primary/30">
                           <MessageSquare className="h-4 w-4" />
                           <span className="text-sm font-medium">
                             {post._count.comments}

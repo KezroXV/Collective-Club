@@ -38,8 +38,8 @@ const CATEGORIES = [
   {
     id: "voyage",
     name: "Voyage",
-    color: "bg-blue-500",
-    textColor: "text-blue-700",
+    color: "bg-primary",
+    textColor: "text-primary",
     count: 12,
   },
   {
@@ -94,13 +94,13 @@ export default function CategoryFilter({
               placeholder="Rechercher par nom ou par post..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 h-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="pl-10 h-10 border-gray-200 focus:border-primary focus:ring-primary"
             />
           </div>
 
           <Button
             onClick={onCreatePost}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-2 px-4 py-2 h-10"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-4 py-2 h-10"
           >
             <Plus className="h-4 w-4" />
             Créer un post
@@ -115,7 +115,7 @@ export default function CategoryFilter({
               onClick={() => onCategoryChange(category.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-sm border ${
                 selectedCategory === category.id
-                  ? "bg-blue-50 border-blue-500 text-blue-700 shadow-sm"
+                  ? "bg-primary/10 border-primary text-primary shadow-sm"
                   : "hover:bg-gray-50 border-gray-200 text-gray-600"
               }`}
             >
