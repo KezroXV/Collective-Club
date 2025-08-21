@@ -99,11 +99,11 @@ export default function PollDisplay({
   };
 
   return (
-    <Card className="border-blue-100 bg-blue-50/50">
+    <Card className="border-primary/20 bg-primary/10">
       <CardContent className="p-4 space-y-4">
         {/* En-tête du sondage */}
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-blue-600" />
+          <BarChart3 className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-gray-900">{poll.question}</h3>
         </div>
 
@@ -120,7 +120,7 @@ export default function PollDisplay({
                   variant="outline"
                   className={`w-full h-auto p-3 justify-start text-left relative overflow-hidden ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50"
+                      ? "border-primary bg-primary/10"
                       : "bg-white hover:bg-gray-50"
                   }`}
                   onClick={() => handleVote(option.id)}
@@ -128,16 +128,14 @@ export default function PollDisplay({
                 >
                   {/* Barre de progression */}
                   <div
-                    className="absolute inset-0 bg-blue-100 transition-all duration-500"
+                    className="absolute inset-0 bg-primary/20 transition-all duration-500"
                     style={{ width: `${percentage}%` }}
                   />
 
                   {/* Contenu */}
                   <div className="relative flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
-                      {isSelected && (
-                        <Check className="h-4 w-4 text-blue-600" />
-                      )}
+                      {isSelected && <Check className="h-4 w-4 text-primary" />}
                       <span className="font-medium">{option.text}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -154,7 +152,7 @@ export default function PollDisplay({
         </div>
 
         {/* Stats du sondage */}
-        <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-blue-200">
+        <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-primary/30">
           <span>
             {totalVotes} vote{totalVotes !== 1 ? "s" : ""} au total
           </span>

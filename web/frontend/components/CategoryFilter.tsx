@@ -157,7 +157,7 @@ export default function CategoryFilter({
                   <option.icon className="h-4 w-4 text-gray-500" />
                   <span className="flex-1">{option.label}</span>
                   {sortBy === option.value && (
-                    <Check className="h-4 w-4 text-blue-600" />
+                    <Check className="h-4 w-4 text-primary" />
                   )}
                 </DropdownMenuItem>
               ))}
@@ -182,7 +182,7 @@ export default function CategoryFilter({
                         {category._count.posts}
                       </span>
                       {selectedCategory === category.id && (
-                        <Check className="h-4 w-4 text-blue-600" />
+                        <Check className="h-4 w-4 text-primary" />
                       )}
                     </DropdownMenuItem>
                   ))}
@@ -197,13 +197,13 @@ export default function CategoryFilter({
               placeholder="Rechercher par nom ou par post..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-14 h-14 border border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-2xl text-base bg-white"
+              className="pl-14 h-14 border border-gray-300 focus:border-primary focus:ring-primary rounded-2xl text-base bg-white"
             />
           </div>
 
           <Button
             onClick={onCreatePost}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-3 px-8 py-4 h-auto rounded-2xl shadow-sm font-medium text-base"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-3 px-8 py-4 h-auto rounded-2xl shadow-sm font-medium text-base"
           >
             Créer un post
             <div className="bg-white rounded-full p-1">

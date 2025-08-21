@@ -25,7 +25,7 @@ async function main() {
     },
     {
       name: "Voyage",
-      color: "bg-blue-500",
+      color: "bg-primary",
       description: "Voyages et destinations",
       order: 4,
     },

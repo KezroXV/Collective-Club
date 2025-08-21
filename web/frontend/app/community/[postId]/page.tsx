@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -163,14 +164,14 @@ export default function PostDetailPage() {
           </div>
 
           {/* Post complet */}
-          <div className="bg-white rounded-[22px] border border-blue-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[22px] border border-primary/20 shadow-sm overflow-hidden">
             <div className="p-8">
               {/* Post Header */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12 ring-2 ring-gray-100">
                     <AvatarImage src={post.author.avatar} />
-                    <AvatarFallback className="bg-blue-600 text-white font-semibold text-lg">
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
                       {getInitials(post.author.name)}
                     </AvatarFallback>
                   </Avatar>

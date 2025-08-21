@@ -179,7 +179,7 @@ export default function HomePage() {
       {/* Section unifiée: Filtres + Posts */}
       <div className="bg-white min-h-screen">
         <div className="container mx-auto px-6 py-8">
-          <div className="max-w-4xl mx-auto rounded-[22px] border border-blue-100 bg-white shadow-sm overflow-hidden">
+          <div className="max-w-4xl mx-auto rounded-[22px] border border-primary/20 bg-white shadow-sm overflow-hidden">
             <div className="p-6">
               <CategoryFilter
                 selectedCategory={selectedCategory}
@@ -211,7 +211,7 @@ export default function HomePage() {
                     </p>
                     {currentUser && (
                       <Link href="/community">
-                        <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg rounded-lg shadow-sm">
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-lg shadow-sm">
                           Créer le premier post
                         </Button>
                       </Link>
@@ -273,11 +273,11 @@ export default function HomePage() {
 
                         <Link
                           href={`/community?postId=${post.id}`}
-                          className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors group"
+                          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors group"
                         >
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 group-hover:bg-blue-50 group-hover:border-blue-200 text-gray-600"
+                            className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 group-hover:bg-primary/10 group-hover:border-primary/30 text-gray-600"
                           >
                             <MessageSquare className="h-4 w-4" />
                             <Badge className="rounded-full bg-white text-gray-600 border border-gray-200 px-2 py-0 text-xs font-medium">

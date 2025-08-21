@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -21,15 +22,6 @@ import {
   Image as ImageIcon,
   BarChart3,
 } from "lucide-react";
-
-const CATEGORIES = [
-  { id: "maison", name: "Maison", color: "bg-orange-500" },
-  { id: "tech", name: "Tech", color: "bg-green-500" },
-  { id: "artisanat", name: "Artisanat", color: "bg-pink-500" },
-  { id: "voyage", name: "Voyage", color: "bg-blue-500" },
-  { id: "cosmetique", name: "Cosmétique", color: "bg-purple-500" },
-  { id: "revente", name: "Revente", color: "bg-yellow-500" },
-];
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -253,7 +245,7 @@ export default function CreatePostModal({
               <Card
                 className={`border-2 border-dashed cursor-pointer transition-all duration-200 ${
                   isDragOver
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-primary bg-primary/10"
                     : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
                 }`}
                 onClick={() => fileInputRef.current?.click()}
@@ -264,12 +256,12 @@ export default function CreatePostModal({
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <div
                     className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors ${
-                      isDragOver ? "bg-blue-100" : "bg-gray-100"
+                      isDragOver ? "bg-primary/20" : "bg-gray-100"
                     }`}
                   >
                     <ImageIcon
                       className={`h-8 w-8 ${
-                        isDragOver ? "text-blue-500" : "text-gray-400"
+                        isDragOver ? "text-primary" : "text-gray-400"
                       }`}
                     />
                   </div>
@@ -419,7 +411,7 @@ export default function CreatePostModal({
           <Button
             onClick={handleSubmit}
             disabled={!title.trim() || !content.trim() || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {isSubmitting ? (
               <>
