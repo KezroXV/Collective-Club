@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Share2 } from "lucide-react";
+import { MessageSquare, Share2, Heart } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import CreatePostModal from "@/components/CreatePostModal";
 import { toast } from "sonner";
 import PollDisplay from "@/components/PollDisplay";
-import ReactionPicker from "@/components/ReactionPicker";
+// ReactionPicker retiré pour n'afficher que coeur + commentaires
 
 interface Post {
   id: string;
@@ -265,11 +265,15 @@ export default function HomePage() {
 
                       {/* Post Actions */}
                       <div className="flex items-center gap-6 pl-16">
-                        <ReactionPicker
-                          postId={post.id}
-                          currentUserId={currentUser?.id || ""}
-                          onReactionUpdate={fetchPosts}
-                        />
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-600"
+                        >
+                          <Heart className="h-4 w-4" />
+                          <Badge className="rounded-full bg-white text-gray-600 border border-gray-200 px-2 py-0 text-xs font-medium">
+                            {post._count.reactions}
+                          </Badge>
+                        </Button>
 
                         <Link
                           href={`/community?postId=${post.id}`}
