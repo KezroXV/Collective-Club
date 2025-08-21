@@ -190,7 +190,7 @@ export default function HomePage() {
                 onSortChange={setSortBy}
               />
               {/* Séparateur entre filtres et posts */}
-              <div className="w-full h-px bg-gray-200 mb-6"></div>
+              <div className="w-full h-px bg-gray-200 "></div>
 
               {/* Posts Content */}
               <div className="space-y-0">
@@ -228,7 +228,7 @@ export default function HomePage() {
                       }`}
                     >
                       {/* Post Title and Content */}
-                      <div className="mb-6 pl-16">
+                      <div className="mb-6 pt-7 pl-16">
                         <h2 className="text-[17px] md:text-[18px] font-semibold text-gray-900 mb-2 leading-tight line-clamp-1">
                           {post.title}
                         </h2>
