@@ -1,9 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+// import { Badge } from "@/components/ui/badge";
+import { Heart } from "lucide-react";
 
 interface ReactionPickerProps {
   postId: string;
@@ -28,7 +35,7 @@ export default function ReactionPicker({
 }: ReactionPickerProps) {
   const [reactions, setReactions] = useState(initialReactions);
   const [loading, setLoading] = useState<string | null>(null);
-  const [showPicker, setShowPicker] = useState(false);
+  const userIsAuthenticated = Boolean(currentUserId);
 
   const handleReaction = async (reactionType: string) => {
     if (!currentUserId) return;
@@ -53,7 +60,6 @@ export default function ReactionPicker({
       console.error("Error handling reaction:", error);
     } finally {
       setLoading(null);
-      setShowPicker(false);
     }
   };
 
@@ -69,12 +75,19 @@ export default function ReactionPicker({
     }
   };
 
-  const getTotalReactions = () => {
-    return Object.values(reactions).reduce(
-      (total: number, users: any) => total + users.length,
+  // Charger les réactions au montage et lors des changements de post
+  useEffect(() => {
+    fetchReactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId]);
+
+  const totalReactions = useMemo(() => {
+    return Object.values(reactions || {}).reduce(
+      (total: number, users: any) =>
+        total + (Array.isArray(users) ? users.length : 0),
       0
     );
-  };
+  }, [reactions]);
 
   const hasUserReacted = (reactionType: string) => {
     return reactions[reactionType]?.some(
@@ -82,62 +95,93 @@ export default function ReactionPicker({
     );
   };
 
+  const getUserReactionType = (): string | null => {
+    for (const reaction of REACTIONS) {
+      if (hasUserReacted(reaction.type)) return reaction.type;
+    }
+    return null;
+  };
+
+  const emojiStyle = {
+    fontFamily:
+      "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','EmojiOne Color','Twemoji Mozilla',sans-serif",
+  } as const;
+
   return (
     <div className="relative">
-      {/* Bouton principal */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1 p-0 h-auto text-muted-foreground hover:text-foreground"
-        onClick={() => setShowPicker(!showPicker)}
-      >
-        <span>❤️</span>
-        {getTotalReactions()} réactions
-      </Button>
+      <div className="flex items-center gap-3">
+        {/* Chips des réactions uniquement si l'utilisateur a déjà réagi */}
+        {getUserReactionType() && (
+          <div className="flex flex-wrap items-center gap-1">
+            {REACTIONS.map((reaction) => {
+              const count = reactions?.[reaction.type]?.length || 0;
+              if (count === 0) return null;
+              return (
+                <Button
+                  key={reaction.type}
+                  variant={
+                    hasUserReacted(reaction.type) ? "default" : "secondary"
+                  }
+                  size="sm"
+                  className="gap-1 h-auto py-1 px-2 text-xs"
+                  onClick={() => handleReaction(reaction.type)}
+                  disabled={!userIsAuthenticated || loading === reaction.type}
+                  title={reaction.label}
+                >
+                  <span style={emojiStyle} className="text-[18px] leading-none">
+                    {reaction.emoji}
+                  </span>
+                  {count}
+                </Button>
+              );
+            })}
+          </div>
+        )}
 
-      {/* Picker des réactions */}
-      {showPicker && (
-        <Card className="absolute bottom-full left-0 mb-2 p-2 flex gap-1 z-10 bg-background border shadow-lg">
-          {REACTIONS.map((reaction) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
-              key={reaction.type}
-              variant={hasUserReacted(reaction.type) ? "default" : "ghost"}
+              variant="outline"
               size="sm"
-              className="p-2 h-auto"
-              onClick={() => handleReaction(reaction.type)}
-              disabled={loading === reaction.type}
-              title={reaction.label}
+              className="bg-white px-4 py-2 rounded-full border-gray-200 text-gray-700 hover:text-gray-900 flex items-center gap-2"
+              disabled={!userIsAuthenticated}
+              title={
+                userIsAuthenticated ? "Réagir" : "Connectez-vous pour réagir"
+              }
             >
-              <span className="text-lg">{reaction.emoji}</span>
+              <Heart className="h-4 w-4" />
+              <span className="text-sm">{totalReactions}</span>
             </Button>
-          ))}
-        </Card>
-      )}
-
-      {/* Affichage des réactions actives */}
-      {getTotalReactions() > 0 && (
-        <div className="flex gap-1 mt-2">
-          {REACTIONS.map((reaction) => {
-            const count = reactions[reaction.type]?.length || 0;
-            if (count === 0) return null;
-
-            return (
-              <Button
-                key={reaction.type}
-                variant={
-                  hasUserReacted(reaction.type) ? "default" : "secondary"
-                }
-                size="sm"
-                className="gap-1 h-auto py-1 px-2 text-xs"
-                onClick={() => handleReaction(reaction.type)}
-              >
-                <span>{reaction.emoji}</span>
-                {count}
-              </Button>
-            );
-          })}
-        </div>
-      )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            sideOffset={8}
+            className="p-2 min-w-[220px]"
+          >
+            <div className="grid grid-cols-5 gap-2">
+              {REACTIONS.map((reaction) => (
+                <DropdownMenuItem
+                  key={reaction.type}
+                  className="p-2 justify-center cursor-pointer"
+                  onClick={() => handleReaction(reaction.type)}
+                  disabled={!userIsAuthenticated || loading === reaction.type}
+                >
+                  <span
+                    title={reaction.label}
+                    className="inline-flex items-center justify-center"
+                    style={emojiStyle}
+                  >
+                    <span className="text-[24px] leading-none">
+                      {reaction.emoji}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {/* Plus de badge total séparé: le compteur est intégré au bouton coeur */}
+      </div>
     </div>
   );
 }

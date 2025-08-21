@@ -3,33 +3,46 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  MessageSquare,
-  Heart,
-  Share2,
-  MoreHorizontal,
-  Filter,
-  Search,
-  Plus,
-} from "lucide-react";
+import { MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
+import Header from "@/components/Header";
+import HeroBanner from "@/components/HeroBanner";
+import CategoryFilter from "@/components/CategoryFilter";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import CreatePostModal from "@/components/CreatePostModal";
+import { toast } from "sonner";
+import PollDisplay from "@/components/PollDisplay";
+import ReactionPicker from "@/components/ReactionPicker";
 
 interface Post {
   id: string;
   title: string;
   content: string;
   imageUrl?: string;
-  category?: string;
+  category?: {
+    id: string;
+    name: string;
+    color: string;
+  };
   author: {
     id: string;
     name: string;
     email: string;
     avatar?: string;
   };
+  poll?: {
+    id: string;
+    question: string;
+    options: Array<{
+      id: string;
+      text: string;
+      order: number;
+      _count: { votes: number };
+    }>;
+    _count: { votes: number };
+  } | null;
   _count: {
     comments: number;
     reactions: number;
@@ -37,6 +50,7 @@ interface Post {
   createdAt: string;
 }
 
+<<<<<<< HEAD
 const CATEGORIES = [
   { id: "all", name: "Tout", color: "bg-gray-400", count: 0 },
   { id: "maison", name: "Maison", color: "bg-orange-500", count: 5 },
@@ -47,7 +61,10 @@ const CATEGORIES = [
   { id: "revente", name: "Revente", color: "bg-yellow-500", count: 4 },
 ];
 
+=======
+>>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
 export default function HomePage() {
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -55,7 +72,7 @@ export default function HomePage() {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
   const searchParams = useSearchParams();
-
+  const [sortBy, setSortBy] = useState("newest");
   // Auth user detection
   useEffect(() => {
     const shop = searchParams.get("shop");
@@ -119,12 +136,16 @@ export default function HomePage() {
   }, []);
 
   // Filter posts
+  // Modifier le filtering par catégorie :
   useEffect(() => {
-    let filtered = posts;
+    // Toujours cloner pour éviter les mutations in-place qui bloquent le re-render
+    let filtered = [...posts];
 
-    // Filter by category
+    // Filter by category - CORRIGÉ
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((post) => post.category === selectedCategory);
+      filtered = filtered.filter(
+        (post) => post.category?.id === selectedCategory
+      );
     }
 
     // Filter by search
@@ -137,48 +158,34 @@ export default function HomePage() {
       );
     }
 
-    setFilteredPosts(filtered);
-  }, [posts, selectedCategory, searchQuery]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
+    // Sort posts (sur une copie)
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case "popular":
+          const aReactions = a._count?.reactions || 0;
+          const bReactions = b._count?.reactions || 0;
+          return bReactions - aReactions;
+        default:
+          return 0;
+      }
     });
-  };
 
-  const getInitials = (name: string) => {
-    return (
-      name
-        ?.split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase() || "?"
-    );
-  };
-
-  const getCategoryColor = (category: string) => {
-    const categoryObj = CATEGORIES.find((c) => c.id === category);
-    return categoryObj?.color || "bg-gray-500";
-  };
-
-  const getCategoryName = (category: string) => {
-    const names: Record<string, string> = {
-      maison: "Maison",
-      tech: "Tech",
-      artisanat: "Artisanat",
-      voyage: "Voyage",
-      cosmetique: "Cosmétique",
-      revente: "Revente",
-    };
-    return names[category] || "Général";
-  };
+    // Toujours setter une nouvelle référence
+    setFilteredPosts(sorted);
+  }, [posts, selectedCategory, searchQuery, sortBy]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
+<<<<<<< HEAD
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center h-16">
@@ -268,20 +275,29 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+=======
+      <Header currentUser={currentUser ?? undefined} />
+
+      {/* Hero Banner */}
+      <HeroBanner />
+>>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
       {/* Section unifiée: Filtres + Posts */}
       <div className="bg-white min-h-screen">
         <div className="container mx-auto px-6 py-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Top Row: Filter + Search + Create Button */}
-            <div className="flex items-center gap-6 mb-8">
-              <Button
-                variant="outline"
-                className="gap-2 text-sm px-5 py-2.5 h-auto border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Filter className="h-4 w-4" />
-                Filtrer
-              </Button>
+          <div className="max-w-4xl mx-auto rounded-[22px] border border-primary/20 bg-white shadow-sm overflow-hidden">
+            <div className="p-6">
+              <CategoryFilter
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                onSearch={setSearchQuery}
+                onCreatePost={() => setShowCreateModal(true)}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
+              {/* Séparateur entre filtres et posts */}
+              <div className="w-full h-px bg-gray-200 mb-6"></div>
 
+<<<<<<< HEAD
               <div className="relative flex-1 max-w-lg">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -321,28 +337,34 @@ export default function HomePage() {
                       <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full min-w-[22px] text-center font-medium">
                         {category.count}
                       </span>
+=======
+              {/* Posts Content */}
+              <div className="space-y-0">
+                {filteredPosts.length === 0 ? (
+                  <div className="text-center py-24">
+                    <div className="text-gray-400 mb-8">
+                      <MessageSquare className="h-24 w-24 mx-auto" />
+                    </div>
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                      {searchQuery || selectedCategory !== "all"
+                        ? "Aucun post trouvé"
+                        : "Aucun post pour l'instant"}
+                    </h3>
+                    <p className="text-gray-600 mb-10 text-lg leading-relaxed max-w-md mx-auto">
+                      {searchQuery || selectedCategory !== "all"
+                        ? "Essayez de modifier vos filtres de recherche"
+                        : "Soyez le premier à partager quelque chose !"}
+                    </p>
+                    {currentUser && (
+                      <Link href="/community">
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-lg shadow-sm">
+                          Créer le premier post
+                        </Button>
+                      </Link>
+>>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
                     )}
-                  </button>
-                ))}
-
-                {/* Add More Button */}
-                <Button
-                  variant="outline"
-                  className="gap-2 whitespace-nowrap text-sm px-4 py-2 h-auto border-dashed border-gray-300 rounded-full hover:bg-gray-50"
-                >
-                  Voir plus
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-
-              {/* Ligne de séparation avec indicateur de scroll */}
-              <div className="relative">
-                <div className="w-full h-px bg-gray-200"></div>
-                {/* Petites flèches de navigation */}
-                <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-2">
-                  <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 border-l border-b border-gray-600 transform rotate-45"></div>
                   </div>
+<<<<<<< HEAD
                 </div>
                 <div className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-2">
                   <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
@@ -404,50 +426,63 @@ export default function HomePage() {
                             {formatDate(post.createdAt)}
                           </p>
                         </div>
+=======
+                ) : (
+                  filteredPosts.map((post, index) => (
+                    <div
+                      key={post.id}
+                      className={`pb-8 ${
+                        index !== filteredPosts.length - 1
+                          ? "border-b border-gray-100"
+                          : ""
+                      }`}
+                    >
+                      {/* Post Title and Content */}
+                      <div className="mb-6 pl-16">
+                        <h2 className="text-[17px] md:text-[18px] font-semibold text-gray-900 mb-2 leading-tight line-clamp-1">
+                          {post.title}
+                        </h2>
+                        <p className="text-gray-700 text-[14px] leading-6 line-clamp-2">
+                          {post.content}
+                        </p>
+>>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-10 w-10 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <MoreHorizontal className="h-5 w-5" />
-                      </Button>
-                    </div>
 
-                    {/* Post Title and Content */}
-                    <div className="mb-8 pl-16">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-4 leading-tight">
-                        {post.title}
-                      </h2>
-                      <p className="text-gray-700 text-base leading-relaxed">
-                        {post.content}
-                      </p>
-                    </div>
+                      {/* Post Image */}
+                      {post.imageUrl && (
+                        <div className="mb-8 pl-16">
+                          <div className="rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                            <Image
+                              src={post.imageUrl}
+                              alt={post.title}
+                              width={1600}
+                              height={900}
+                              className="w-full h-auto max-h-96 object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
 
-                    {/* Post Image */}
-                    {post.imageUrl && (
-                      <div className="mb-8 pl-16">
-                        <div className="rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                          <img
-                            src={post.imageUrl}
-                            alt={post.title}
-                            className="w-full h-auto max-h-96 object-cover"
+                      {/* Poll */}
+                      {post.poll && (
+                        <div className="mb-8 pl-16">
+                          <PollDisplay
+                            poll={post.poll}
+                            currentUser={currentUser ?? undefined}
+                            onVote={() => fetchPosts()}
                           />
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Post Actions */}
-                    <div className="flex items-center gap-8 pl-16">
-                      <button className="flex items-center gap-3 text-gray-500 hover:text-red-500 transition-colors group">
-                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-red-50 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-red-200">
-                          <Heart className="h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            {post._count.reactions}
-                          </span>
-                        </div>
-                      </button>
+                      {/* Post Actions */}
+                      <div className="flex items-center gap-6 pl-16">
+                        <ReactionPicker
+                          postId={post.id}
+                          currentUserId={currentUser?.id || ""}
+                          onReactionUpdate={fetchPosts}
+                        />
 
+<<<<<<< HEAD
                       <Link
                         href={`/community?postId=${post.id}`}
                         className="flex items-center gap-3 text-gray-500 hover:text-primary transition-colors group"
@@ -459,21 +494,52 @@ export default function HomePage() {
                           </span>
                         </div>
                       </Link>
+=======
+                        <Link
+                          href={`/community?postId=${post.id}`}
+                          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors group"
+                        >
+                          <Button
+                            variant="outline"
+                            className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 group-hover:bg-primary/10 group-hover:border-primary/30 text-gray-600"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            <Badge className="rounded-full bg-white text-gray-600 border border-gray-200 px-2 py-0 text-xs font-medium">
+                              {post._count.comments}
+                            </Badge>
+                          </Button>
+                        </Link>
+>>>>>>> de7090021793ae38ee7dd965169c7481e297a6a7
 
-                      <button className="flex items-center gap-3 text-gray-500 hover:text-gray-700 transition-colors group ml-auto">
-                        <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-gray-100 px-4 py-2.5 rounded-full transition-all border border-gray-200 group-hover:border-gray-300">
+                        <Button
+                          variant="outline"
+                          className="ml-auto flex items-center gap-2 bg-white px-4 py-2 rounded-full border-gray-200 hover:bg-gray-100 text-gray-600"
+                          onClick={() => {
+                            const url = `${window.location.origin}/community/${post.id}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success(
+                              "Lien copié dans le presse-papiers !"
+                            );
+                          }}
+                        >
                           <Share2 className="h-4 w-4" />
-                          <span className="text-sm">Partager</span>
-                        </div>
-                      </button>
+                          Partager
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <CreatePostModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        currentUser={currentUser}
+        onPostCreated={fetchPosts}
+      />
     </div>
   );
 }

@@ -29,6 +29,21 @@ model User {
   reactions Reaction[]
 
   @@map("users")
+  PollVote PollVote[]
+}
+model Category {
+  id          String @id @default(cuid())
+  name        String @unique
+  color       String // Ex: "bg-orange-500"
+  description String?
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts Post[]
+
+  @@map("categories")
 }
 
 model Post {
@@ -40,13 +55,67 @@ model Post {
   status    PostStatus @default(PUBLISHED)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  
+  author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
 
-  authorId  String
-  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   // ✅ CHANGÉ de String? category à relation
+
   comments  Comment[]
   reactions Reaction[]
+  poll      Poll?
 
   @@map("posts")
+}
+
+// ✅ NOUVEAU MODÈLE
+model Poll {
+  id       String @id @default(cuid())
+  question String
+  
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String @unique
+  
+  options PollOption[]
+  votes   PollVote[]
+  
+  createdAt DateTime @default(now())
+  
+  @@map("polls")
+}
+
+// ✅ OPTIONS DU SONDAGE (max 4)
+model PollOption {
+  id    String @id @default(cuid())
+  text  String
+  order Int    // 0, 1, 2, 3 (pour l'ordre)
+  
+  poll   Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollId String
+  
+  votes PollVote[]
+  
+  @@map("poll_options")
+}
+
+// ✅ VOTES DES UTILISATEURS
+model PollVote {
+  id String @id @default(cuid())
+  
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  
+  poll   Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollId String
+  
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId String
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, pollId]) // Un seul vote par user par sondage
+  @@map("poll_votes")
 }
 
 model Comment {
