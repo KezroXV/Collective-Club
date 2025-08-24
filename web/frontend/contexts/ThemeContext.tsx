@@ -28,7 +28,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [colors, setColors] = useState<ThemeColors>(defaultTheme);
-  const [selectedFont, setSelectedFont] = useState("Inter");
+  const [selectedFont, setSelectedFont] = useState("Helvetica");
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
   const updateTheme = (newColors: ThemeColors, font: string, coverImage?: string | null) => {

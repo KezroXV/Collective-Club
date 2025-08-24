@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           colorBorders: "#E5E7EB", 
           colorBg: "#F9FAFB",
           colorText: "#111827",
-          selectedFont: "Inter",
+          selectedFont: "Helvetica",
         },
       });
     }
@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest) {
         colorBorders: colorBorders || "#E5E7EB",
         colorBg: colorBg || "#F9FAFB", 
         colorText: colorText || "#111827",
-        selectedFont: selectedFont || "Inter",
+        selectedFont: selectedFont || "Helvetica",
         coverImageUrl: coverImageUrl || null,
         customBadges: customBadges || null,
       },
@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest) {
         colorBorders: colorBorders || "#E5E7EB",
         colorBg: colorBg || "#F9FAFB",
         colorText: colorText || "#111827", 
-        selectedFont: selectedFont || "Inter",
+        selectedFont: selectedFont || "Helvetica",
         coverImageUrl: coverImageUrl || null,
         customBadges: customBadges || null,
       },

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Plus, Edit2 } from "lucide-react";
+import { Upload, Plus, Edit2, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import ColorPicker from "./ColorPicker";
@@ -102,6 +102,21 @@ export default function CustomizationModal({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleReset = () => {
+    const defaultColors = {
+      Posts: "#3B82F6",
+      Bordures: "#E5E7EB",
+      Fond: "#F9FAFB",
+      Police: "#111827",
+    };
+    
+    setColors(defaultColors);
+    setSelectedFont("Helvetica");
+    setCoverImage("");
+    
+    toast.success("Paramètres remis par défaut !");
   };
 
   const handleSave = async () => {
@@ -307,17 +322,27 @@ export default function CustomizationModal({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t mt-4 flex-shrink-0">
-            <Button variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
+          <div className="flex justify-between items-center pt-4 border-t mt-4 flex-shrink-0">
+            <Button 
+              variant="outline" 
+              onClick={handleReset}
+              className="text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-700 transition-colors"
             >
-              {isLoading ? "Enregistrement..." : "Enregistrer"}
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Par défaut
             </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
