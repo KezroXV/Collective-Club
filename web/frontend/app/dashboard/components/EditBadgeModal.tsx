@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,28 +8,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Upload } from "lucide-react";
+import { Upload, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-interface BadgeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  userId?: string;
-  onBadgeCreated?: () => void;
+interface Badge {
+  id: string;
+  name: string;
+  imageUrl: string;
+  requiredCount: number;
+  isDefault: boolean;
 }
 
-export default function BadgeModal({
+interface EditBadgeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  badge: Badge | null;
+  userId?: string;
+  onBadgeUpdated?: () => void;
+}
+
+export default function EditBadgeModal({
   isOpen,
   onClose,
+  badge,
   userId,
-  onBadgeCreated,
-}: BadgeModalProps) {
-  const [newBadgeName, setNewBadgeName] = useState("");
-  const [newBadgeImage, setNewBadgeImage] = useState("");
+  onBadgeUpdated,
+}: EditBadgeModalProps) {
+  const [badgeName, setBadgeName] = useState("");
+  const [badgeImage, setBadgeImage] = useState("");
   const [badgeCount, setBadgeCount] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const badgeImageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen && badge) {
+      setBadgeName(badge.name);
+      setBadgeImage(badge.imageUrl);
+      setBadgeCount(badge.requiredCount);
+    }
+  }, [isOpen, badge]);
 
   const handleBadgeImageUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -38,55 +56,100 @@ export default function BadgeModal({
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setNewBadgeImage(reader.result as string);
+        setBadgeImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleAddBadge = async () => {
-    if (!newBadgeName.trim()) {
+  const handleUpdateBadge = async () => {
+    if (!badgeName.trim()) {
       toast.error("Veuillez entrer un nom pour le badge");
       return;
     }
 
-    if (!newBadgeImage) {
+    if (!badgeImage) {
       toast.error("Veuillez ajouter une image pour le badge");
       return;
     }
 
-    if (!userId) {
-      toast.error("Utilisateur non connecté");
+    if (!userId || !badge) {
+      toast.error("Informations manquantes");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/badges", {
-        method: "POST",
+      const response = await fetch(`/api/badges/${badge.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
-          name: newBadgeName,
-          imageUrl: newBadgeImage,
+          name: badgeName,
+          imageUrl: badgeImage,
           requiredCount: badgeCount,
         }),
       });
 
       if (response.ok) {
-        toast.success(`Badge "${newBadgeName}" ajouté !`);
-        onBadgeCreated?.();
+        toast.success(`Badge "${badgeName}" modifié !`);
+        onBadgeUpdated?.();
         handleClose();
       } else {
         const error = await response.json();
-        throw new Error(error.error || "Erreur lors de la création");
+        throw new Error(error.error || "Erreur lors de la modification");
       }
     } catch (error) {
-      console.error("Erreur lors de la création du badge:", error);
+      console.error("Erreur lors de la modification du badge:", error);
       toast.error(
-        error instanceof Error ? error.message : "Impossible de créer le badge"
+        error instanceof Error
+          ? error.message
+          : "Impossible de modifier le badge"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteBadge = async () => {
+    if (!userId || !badge) {
+      toast.error("Informations manquantes");
+      return;
+    }
+
+    if (badge.isDefault) {
+      toast.error("Impossible de supprimer un badge par défaut");
+      return;
+    }
+
+    if (
+      !confirm(`Êtes-vous sûr de vouloir supprimer le badge "${badge.name}" ?`)
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/badges/${badge.id}?userId=${userId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success(`Badge "${badge.name}" supprimé !`);
+        onBadgeUpdated?.();
+        handleClose();
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du badge:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de supprimer le badge"
       );
     } finally {
       setIsLoading(false);
@@ -95,8 +158,8 @@ export default function BadgeModal({
 
   const handleClose = () => {
     onClose();
-    setNewBadgeName("");
-    setNewBadgeImage("");
+    setBadgeName("");
+    setBadgeImage("");
     setBadgeCount(5);
   };
 
@@ -108,12 +171,14 @@ export default function BadgeModal({
     setBadgeCount((prev) => Math.max(5, prev - 5));
   };
 
+  if (!badge) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-52 max-w-[200px] p-4">
+      <DialogContent className="w-auto max-w-[90vw] sm:max-w-[320px] p-4">
         <DialogHeader className="relative">
           <DialogTitle className="text-center text-gray-600 text-sm">
-            ajouter
+            modifier
           </DialogTitle>
         </DialogHeader>
 
@@ -163,9 +228,9 @@ export default function BadgeModal({
               onClick={() => badgeImageInputRef.current?.click()}
               className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-full flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
             >
-              {newBadgeImage ? (
+              {badgeImage ? (
                 <Image
-                  src={newBadgeImage}
+                  src={badgeImage}
                   alt="Badge preview"
                   width={88}
                   height={88}
@@ -191,24 +256,33 @@ export default function BadgeModal({
 
           <div className="text-center">
             <Input
-              value={newBadgeName}
-              onChange={(e) => setNewBadgeName(e.target.value)}
+              value={badgeName}
+              onChange={(e) => setBadgeName(e.target.value)}
               placeholder="Nom..."
               className="text-center border-0 border-b border-gray-200 rounded-none focus:border-gray-400 text-sm text-gray-400 bg-transparent p-1"
             />
           </div>
 
-          <div className="flex justify-center gap-4 pt-2">
+          <div className="flex justify-center gap-2 pt-2">
+            {!badge.isDefault && (
+              <button
+                onClick={handleDeleteBadge}
+                disabled={isLoading}
+                className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
             <button
               onClick={handleClose}
-              className="w-10 h-10 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors text-lg"
+              className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors text-sm"
             >
               ×
             </button>
             <button
-              onClick={handleAddBadge}
+              onClick={handleUpdateBadge}
               disabled={isLoading}
-              className="w-10 h-10 rounded-full border-2 border-green-300 flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-full border-2 border-green-300 flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "..." : "✓"}
             </button>

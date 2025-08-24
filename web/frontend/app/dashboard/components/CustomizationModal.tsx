@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import ColorPicker from "./ColorPicker";
 import BadgeModal from "./BadgeModal";
+import EditBadgeModal from "./EditBadgeModal";
 import PostPreview from "./PostPreview";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -43,39 +44,65 @@ export default function CustomizationModal({
   const [selectedFont, setSelectedFont] = useState(globalFont);
   const [bannerImage, setBannerImage] = useState(globalBannerImage || "/Bannière.svg");
   const [isAddBadgeModalOpen, setIsAddBadgeModalOpen] = useState(false);
+  const [isEditBadgeModalOpen, setIsEditBadgeModalOpen] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [skillLevels] = useState([
-    {
-      id: "nouveau",
-      name: "Nouveau",
-      image: "/Badge-nouveau.svg",
-      count: 60,
-      editable: false,
-    },
-    {
-      id: "novice",
-      name: "Novice",
-      image: "/Badge-bronze.svg",
-      count: 50,
-      editable: false,
-    },
-    {
-      id: "intermediaire",
-      name: "Intermédiaire",
-      image: "/Badge-argent.svg",
-      count: 100,
-      editable: false,
-    },
-    {
-      id: "expert",
-      name: "Expert",
-      image: "/Badge-or.svg",
-      count: 30,
-      editable: false,
-    },
-  ]);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [isLoadingBadges, setIsLoadingBadges] = useState(false);
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Charger les badges
+  const loadBadges = useCallback(async () => {
+    if (!userId) return;
+    
+    setIsLoadingBadges(true);
+    try {
+      const response = await fetch(`/api/badges?userId=${userId}`);
+      if (response.ok) {
+        const badgesData = await response.json();
+        
+        // Si l'utilisateur n'a aucun badge, créer les badges par défaut
+        if (badgesData.length === 0) {
+          await createDefaultBadges();
+          // Recharger après création
+          const newResponse = await fetch(`/api/badges?userId=${userId}`);
+          if (newResponse.ok) {
+            const newBadgesData = await newResponse.json();
+            setBadges(newBadgesData);
+          }
+        } else {
+          setBadges(badgesData);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des badges:", error);
+    } finally {
+      setIsLoadingBadges(false);
+    }
+  }, [userId]);
+
+  // Créer les badges par défaut pour l'utilisateur
+  const createDefaultBadges = async () => {
+    const defaultBadges = [
+      { name: "Nouveau", imageUrl: "/Badge-nouveau.svg", requiredCount: 5, order: 1 },
+      { name: "Bronze", imageUrl: "/Badge-bronze.svg", requiredCount: 50, order: 2 },
+      { name: "Argent", imageUrl: "/Badge-argent.svg", requiredCount: 100, order: 3 },
+      { name: "Or", imageUrl: "/Badge-or.svg", requiredCount: 500, order: 4 },
+    ];
+
+    for (const badge of defaultBadges) {
+      try {
+        await fetch("/api/badges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...badge, userId }),
+        });
+      } catch (error) {
+        console.error("Erreur lors de la création du badge par défaut:", badge.name, error);
+      }
+    }
+  };
 
   // Synchroniser avec le contexte global au moment de l'ouverture
   useEffect(() => {
@@ -83,8 +110,9 @@ export default function CustomizationModal({
       setColors(globalColors);
       setSelectedFont(globalFont);
       setBannerImage(globalBannerImage || "/Bannière.svg");
+      loadBadges();
     }
-  }, [isOpen, globalColors, globalFont, globalBannerImage]);
+  }, [isOpen, globalColors, globalFont, globalBannerImage, loadBadges]);
 
   const handleColorChange = (color: string) => {
     setColors((prev) => ({
@@ -261,35 +289,51 @@ export default function CustomizationModal({
                   Paliers
                 </h3>
                 <div className="grid grid-cols-4 gap-3">
-                  {skillLevels.map((level) => (
-                    <div key={level.id} className="text-center">
-                      <div
-                        className="relative mx-auto mb-1.5 drop-shadow-sm"
-                        style={{ width: 56, height: 56 }}
-                      >
-                        <Image
-                          src={level.image}
-                          alt={level.name}
-                          width={56}
-                          height={56}
-                          className="rounded-full"
-                        />
-                        <span
-                          className="absolute -top-1.5 -right-1.5 text-[9px] px-1 py-0.5 rounded bg-white shadow"
-                          style={{ border: `1px solid ${colors.Bordures}` }}
-                        >
-                          {level.count}
-                        </span>
-                      </div>
-                      <p className="font-medium text-xs text-gray-900">
-                        {level.name}
-                      </p>
-                      <div className="flex items-center justify-center gap-1 mt-1 text-gray-500 hover:text-gray-700 transition-colors">
-                        <Edit2 className="h-2.5 w-2.5" />
-                        <span className="text-[10px]">Modifier</span>
-                      </div>
+                  {isLoadingBadges ? (
+                    <div className="col-span-4 text-center text-gray-500 text-sm py-4">
+                      Chargement des badges...
                     </div>
-                  ))}
+                  ) : (
+                    <>
+                      {badges.map((badge) => (
+                        <div key={badge.id} className="text-center">
+                          <div
+                            className="relative mx-auto mb-1.5 drop-shadow-sm"
+                            style={{ width: 56, height: 56 }}
+                          >
+                            <Image
+                              src={badge.imageUrl}
+                              alt={badge.name}
+                              width={56}
+                              height={56}
+                              className="rounded-full"
+                            />
+                            <span
+                              className="absolute -top-1.5 -right-1.5 text-[9px] px-1 py-0.5 rounded bg-white shadow"
+                              style={{ border: `1px solid ${colors.Bordures}` }}
+                            >
+                              {badge.requiredCount}
+                            </span>
+                          </div>
+                          <p className="font-medium text-xs text-gray-900">
+                            {badge.name}
+                          </p>
+                          {!badge.isDefault && (
+                            <div 
+                              className="flex items-center justify-center gap-1 mt-1 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                              onClick={() => {
+                                setSelectedBadge(badge);
+                                setIsEditBadgeModalOpen(true);
+                              }}
+                            >
+                              <Edit2 className="h-2.5 w-2.5" />
+                              <span className="text-[10px]">Modifier</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
                   <div className="text-center">
                     <button
                       onClick={() => setIsAddBadgeModalOpen(true)}
@@ -342,6 +386,28 @@ export default function CustomizationModal({
       <BadgeModal
         isOpen={isAddBadgeModalOpen}
         onClose={() => setIsAddBadgeModalOpen(false)}
+        userId={userId}
+        onBadgeCreated={() => {
+          // Callback pour rafraîchir les badges après création
+          loadBadges();
+          setIsAddBadgeModalOpen(false);
+        }}
+      />
+
+      <EditBadgeModal
+        isOpen={isEditBadgeModalOpen}
+        onClose={() => {
+          setIsEditBadgeModalOpen(false);
+          setSelectedBadge(null);
+        }}
+        badge={selectedBadge}
+        userId={userId}
+        onBadgeUpdated={() => {
+          // Callback pour rafraîchir les badges après modification
+          loadBadges();
+          setIsEditBadgeModalOpen(false);
+          setSelectedBadge(null);
+        }}
       />
     </>
   );
