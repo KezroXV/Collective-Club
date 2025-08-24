@@ -19,7 +19,7 @@ import { MessageSquare, Plus, Search, ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 import ReactionPicker from "@/components/ReactionPicker";
 import PollDisplay from "@/components/PollDisplay";
-//dqdqdzqzfdfzq
+import ThemeWrapper from "@/components/ThemeWrapper";
 interface Post {
   id: string;
   title: string;
@@ -197,7 +197,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+    <ThemeWrapper applyBackgroundColor={true} className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -435,6 +435,6 @@ export default function CommunityPage() {
           )}
         </div>
       </div>
-    </div>
+    </ThemeWrapper>
   );
 }

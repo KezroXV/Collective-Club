@@ -19,13 +19,26 @@ export default function ThemeWrapper({
   useEffect(() => {
     // Appliquer la police globalement
     document.body.style.fontFamily = selectedFont;
-  }, [selectedFont]);
+    
+    // Appliquer les variables CSS au root
+    const root = document.documentElement;
+    root.style.setProperty('--theme-posts', colors.Posts);
+    root.style.setProperty('--theme-borders', colors.Bordures);
+    root.style.setProperty('--theme-bg', colors.Fond);
+    root.style.setProperty('--theme-text', colors.Police);
+    root.style.setProperty('--theme-font', selectedFont);
+  }, [selectedFont, colors]);
 
   const dynamicStyle: React.CSSProperties = {
     ...(applyBackgroundColor && { backgroundColor: colors.Fond }),
     color: colors.Police,
     fontFamily: selectedFont,
-  };
+    // Variables CSS pour les composants enfants
+    '--theme-posts': colors.Posts,
+    '--theme-borders': colors.Bordures,
+    '--theme-bg': colors.Fond,
+    '--theme-text': colors.Police,
+  } as React.CSSProperties;
 
   return (
     <div 

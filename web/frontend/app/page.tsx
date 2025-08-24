@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import CreatePostModal from "@/components/CreatePostModal";
 import { toast } from "sonner";
 import PollDisplay from "@/components/PollDisplay";
+import ThemeWrapper from "@/components/ThemeWrapper";
 // ReactionPicker retiré pour n'afficher que coeur + commentaires
 
 interface Post {
@@ -170,7 +171,7 @@ export default function HomePage() {
   }, [posts, selectedCategory, searchQuery, sortBy]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ThemeWrapper applyBackgroundColor={true} className="min-h-screen">
       {/* Header */}
       <Header currentUser={currentUser ?? undefined} />
 
@@ -319,6 +320,6 @@ export default function HomePage() {
         currentUser={currentUser}
         onPostCreated={fetchPosts}
       />
-    </div>
+    </ThemeWrapper>
   );
 }
