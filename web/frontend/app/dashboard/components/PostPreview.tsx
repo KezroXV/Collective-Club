@@ -91,24 +91,26 @@ export default function PostPreview({ colors, selectedFont, coverImage }: PostPr
             className="w-full h-52 object-cover"
           />
         </div>
-        <p className="text-[13px] leading-6 mb-4 text-gray-700">
-          Hello à tous,
-          <br /> En ce moment, je suis grave dans une phase "retro" et
-          j'ai vraiment envie de refaire un peu ma garde-robe avec des
-          vêtements vintage. J'ai déjà fait quelques friperies en ville
-          mais j'aimerais tester des sites e-commerce pour avoir plus de
-          choix et dénicher des marques stylées (genre Levi's vintage,
-          Adidas old school, Nike années 90, ou même des petites marques
-          moins connues mais avec du vrai style). Le problème, c'est que
-          sur le net, il y a un peu de tout : des sites hyper chers, des
-          arnaques, et parfois des sélections qui sentent la fast
-          fashion… Du coup, je me tourne vers vous pour avoir vos
-          recommandations de boutiques en ligne fiables, avec une vraie
-          sélection de pièces vintage ! Ça peut être des plateformes
-          spécialisées, des shops indépendants ou même des comptes
-          Insta/Depop/Vinted si vous avez eu de vraies bonnes
-          expériences. Je suis surtout preneur de sites où :
-          <ul>
+        <div className="text-[13px] leading-6 mb-4 text-gray-700">
+          <p>
+            Hello à tous,
+            <br /> En ce moment, je suis grave dans une phase "retro" et
+            j'ai vraiment envie de refaire un peu ma garde-robe avec des
+            vêtements vintage. J'ai déjà fait quelques friperies en ville
+            mais j'aimerais tester des sites e-commerce pour avoir plus de
+            choix et dénicher des marques stylées (genre Levi's vintage,
+            Adidas old school, Nike années 90, ou même des petites marques
+            moins connues mais avec du vrai style). Le problème, c'est que
+            sur le net, il y a un peu de tout : des sites hyper chers, des
+            arnaques, et parfois des sélections qui sentent la fast
+            fashion… Du coup, je me tourne vers vous pour avoir vos
+            recommandations de boutiques en ligne fiables, avec une vraie
+            sélection de pièces vintage ! Ça peut être des plateformes
+            spécialisées, des shops indépendants ou même des comptes
+            Insta/Depop/Vinted si vous avez eu de vraies bonnes
+            expériences. Je suis surtout preneur de sites où :
+          </p>
+          <ul className="my-3 pl-4">
             <li>
               La qualité est au rendez-vous (pas des fringues qui
               tombent en morceaux après 2 lavages…)
@@ -122,13 +124,15 @@ export default function PostPreview({ colors, selectedFont, coverImage }: PostPr
               d'acheter en ligne sans pouvoir essayer)
             </li>
           </ul>
-          Bref, n'hésitez pas à balancer vos meilleures adresses, vos
-          avis, ou même vos achats coup de cœur récents (avec photos si
-          vous voulez montrer vos trouvailles !). Si vous avez eu des
-          mauvaises surprises aussi, je veux bien vos mises en garde
-          pour éviter de tomber dans les mêmes pièges. Merci d'avance
-          pour tous vos retours!
-        </p>
+          <p>
+            Bref, n'hésitez pas à balancer vos meilleures adresses, vos
+            avis, ou même vos achats coup de cœur récents (avec photos si
+            vous voulez montrer vos trouvailles !). Si vous avez eu des
+            mauvaises surprises aussi, je veux bien vos mises en garde
+            pour éviter de tomber dans les mêmes pièges. Merci d'avance
+            pour tous vos retours!
+          </p>
+        </div>
         <div className="flex items-center gap-5 text-gray-500">
           <div className="flex items-center gap-1">
             <Heart className="w-4 h-4" />

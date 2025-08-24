@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { requireAdmin } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -25,9 +26,12 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    // Vérifier les droits admin
+    await requireAdmin(body.userId);
     const { name, color, description, order } = body;
 
     if (!name || !color) {
@@ -49,6 +53,14 @@ export async function POST(request: Request) {
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error("Error creating category:", error);
+    
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      return NextResponse.json(
+        { error: "Seuls les administrateurs peuvent créer des catégories" },
+        { status: 403 }
+      );
+    }
+    
     return NextResponse.json(
       { error: "Failed to create category" },
       { status: 500 }

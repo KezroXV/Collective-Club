@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, name, shopDomain } = body;
 
+    // Cette API ne devrait plus créer d'utilisateurs ADMIN
+    // Les ADMIN sont créés uniquement via le callback OAuth Shopify
     const user = await prisma.user.upsert({
       where: { email },
       update: { name, shopDomain },
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
         email,
         name,
         shopDomain,
-        role: "ADMIN", // Premier user = admin
+        role: "MEMBER", // Tous les users créés via cette API sont MEMBER
       },
     });
 

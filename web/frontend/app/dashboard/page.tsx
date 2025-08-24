@@ -8,9 +8,13 @@ import CategoriesSection from "@/components/CategoriesSection";
 import Link from "next/link";
 import { FileText, TrendingUp, Users, Home, HelpCircle } from "lucide-react";
 import CustomizationModal from "./components/CustomizationModal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function DashboardPage() {
   const [showCustomization, setShowCustomization] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { loadUserTheme } = useTheme();
+
 
   const [stats, setStats] = useState({
     posts: 37,
@@ -20,6 +24,24 @@ export default function DashboardPage() {
     subscribers: 130,
     subscribersChange: 12,
   });
+
+  // Charger l'utilisateur depuis localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        setCurrentUser(user);
+        // Charger le thème de l'utilisateur
+        if (user.id) {
+          loadUserTheme(user.id);
+        }
+      } catch (error) {
+        console.error("Error parsing stored user:", error);
+      }
+    }
+  }, [loadUserTheme]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -204,6 +226,7 @@ export default function DashboardPage() {
           <CustomizationModal
             isOpen={showCustomization}
             onClose={() => setShowCustomization(false)}
+            userId={currentUser?.id}
           />
         </div>
       </div>

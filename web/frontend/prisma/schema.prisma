@@ -27,9 +27,10 @@ model User {
   posts     Post[]
   comments  Comment[]
   reactions Reaction[]
+  PollVote  PollVote[]
+  customizationSettings CustomizationSettings?
 
   @@map("users")
-  PollVote PollVote[]
 }
 model Category {
   id          String @id @default(cuid())
@@ -168,4 +169,30 @@ enum ReactionType {
   LAUGH
   WOW
   APPLAUSE
+}
+
+model CustomizationSettings {
+  id           String @id @default(cuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Couleurs
+  colorPosts    String @default("#3B82F6")
+  colorBorders  String @default("#E5E7EB")
+  colorBg       String @default("#F9FAFB")
+  colorText     String @default("#111827")
+  
+  // Police
+  selectedFont  String @default("Inter")
+  
+  // Image de couverture
+  coverImageUrl String?
+  
+  // Badges personnalisés (JSON)
+  customBadges  Json?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("customization_settings")
 }

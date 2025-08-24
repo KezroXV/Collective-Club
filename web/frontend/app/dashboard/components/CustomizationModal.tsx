@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import ColorPicker from "./ColorPicker";
 import BadgeModal from "./BadgeModal";
 import PostPreview from "./PostPreview";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const FONTS = [
   { name: "Inter", value: "font-inter" },
@@ -27,22 +28,22 @@ const FONTS = [
 interface CustomizationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userId?: string;
 }
 
 export default function CustomizationModal({
   isOpen,
   onClose,
+  userId,
 }: CustomizationModalProps) {
+  const { colors: globalColors, selectedFont: globalFont, coverImageUrl: globalCoverImage, updateTheme } = useTheme();
+  
   const [activeColorTab, setActiveColorTab] = useState("Posts");
-  const [colors, setColors] = useState({
-    Posts: "#3B82F6",
-    Bordures: "#E5E7EB",
-    Fond: "#F9FAFB",
-    Police: "#111827",
-  });
-  const [selectedFont, setSelectedFont] = useState("Inter");
-  const [coverImage, setCoverImage] = useState("");
+  const [colors, setColors] = useState(globalColors);
+  const [selectedFont, setSelectedFont] = useState(globalFont);
+  const [coverImage, setCoverImage] = useState(globalCoverImage || "");
   const [isAddBadgeModalOpen, setIsAddBadgeModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [skillLevels] = useState([
     {
       id: "nouveau",
@@ -76,6 +77,15 @@ export default function CustomizationModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Synchroniser avec le contexte global au moment de l'ouverture
+  useEffect(() => {
+    if (isOpen) {
+      setColors(globalColors);
+      setSelectedFont(globalFont);
+      setCoverImage(globalCoverImage || "");
+    }
+  }, [isOpen, globalColors, globalFont, globalCoverImage]);
+
   const handleColorChange = (color: string) => {
     setColors((prev) => ({
       ...prev,
@@ -94,9 +104,44 @@ export default function CustomizationModal({
     }
   };
 
-  const handleSave = () => {
-    toast.success("Personnalisation enregistrée !");
-    onClose();
+  const handleSave = async () => {
+    if (!userId) {
+      toast.error("Utilisateur non connecté");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/customization", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          colorPosts: colors.Posts,
+          colorBorders: colors.Bordures,
+          colorBg: colors.Fond,
+          colorText: colors.Police,
+          selectedFont,
+          coverImageUrl: coverImage || null,
+        }),
+      });
+
+      if (response.ok) {
+        // Mettre à jour le contexte global
+        updateTheme(colors, selectedFont, coverImage || null);
+        toast.success("Personnalisation enregistrée !");
+        onClose();
+      } else {
+        throw new Error("Erreur lors de la sauvegarde");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast.error("Impossible de sauvegarder les paramètres");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -268,9 +313,10 @@ export default function CustomizationModal({
             </Button>
             <Button
               onClick={handleSave}
+              disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Enregistrer
+              {isLoading ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </div>
         </DialogContent>
