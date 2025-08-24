@@ -188,6 +188,9 @@ model CustomizationSettings {
   // Image de couverture
   coverImageUrl String?
   
+  // Image de bannière
+  bannerImageUrl String @default("/Bannière.svg")
+  
   // Badges personnalisés (JSON)
   customBadges  Json?
   

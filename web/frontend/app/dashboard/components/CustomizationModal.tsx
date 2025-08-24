@@ -36,12 +36,12 @@ export default function CustomizationModal({
   onClose,
   userId,
 }: CustomizationModalProps) {
-  const { colors: globalColors, selectedFont: globalFont, coverImageUrl: globalCoverImage, updateTheme } = useTheme();
+  const { colors: globalColors, selectedFont: globalFont, bannerImageUrl: globalBannerImage, updateTheme } = useTheme();
   
   const [activeColorTab, setActiveColorTab] = useState("Posts");
   const [colors, setColors] = useState(globalColors);
   const [selectedFont, setSelectedFont] = useState(globalFont);
-  const [coverImage, setCoverImage] = useState(globalCoverImage || "");
+  const [bannerImage, setBannerImage] = useState(globalBannerImage || "/Bannière.svg");
   const [isAddBadgeModalOpen, setIsAddBadgeModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [skillLevels] = useState([
@@ -75,16 +75,16 @@ export default function CustomizationModal({
     },
   ]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   // Synchroniser avec le contexte global au moment de l'ouverture
   useEffect(() => {
     if (isOpen) {
       setColors(globalColors);
       setSelectedFont(globalFont);
-      setCoverImage(globalCoverImage || "");
+      setBannerImage(globalBannerImage || "/Bannière.svg");
     }
-  }, [isOpen, globalColors, globalFont, globalCoverImage]);
+  }, [isOpen, globalColors, globalFont, globalBannerImage]);
 
   const handleColorChange = (color: string) => {
     setColors((prev) => ({
@@ -93,12 +93,13 @@ export default function CustomizationModal({
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setCoverImage(reader.result as string);
+        setBannerImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -114,7 +115,7 @@ export default function CustomizationModal({
     
     setColors(defaultColors);
     setSelectedFont("Helvetica");
-    setCoverImage("");
+    setBannerImage("/Bannière.svg");
     
     toast.success("Paramètres remis par défaut !");
   };
@@ -139,13 +140,14 @@ export default function CustomizationModal({
           colorBg: colors.Fond,
           colorText: colors.Police,
           selectedFont,
-          coverImageUrl: coverImage || null,
+          coverImageUrl: null,
+          bannerImageUrl: bannerImage,
         }),
       });
 
       if (response.ok) {
         // Mettre à jour le contexte global
-        updateTheme(colors, selectedFont, coverImage || null);
+        updateTheme(colors, selectedFont, null, bannerImage);
         toast.success("Personnalisation enregistrée !");
         onClose();
       } else {
@@ -217,48 +219,38 @@ export default function CustomizationModal({
                 </div>
               </div>
 
-              {/* Section Photo de couverture */}
+              {/* Section Bannière */}
               <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-3">
-                  Photo de couverture
-                </h3>
-
-                {coverImage ? (
-                  <div className="relative">
-                    <Image
-                      src={coverImage}
-                      alt="Cover"
-                      width={1200}
-                      height={300}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      onClick={() => setCoverImage("")}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Bannière du forum
+                  </h3>
+                  <Button
+                    onClick={() => bannerInputRef.current?.click()}
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-600 hover:text-gray-700"
                   >
-                    <Upload className="h-6 w-6 text-gray-400 mb-1" />
-                    <span className="text-gray-500 font-medium text-xs">
-                      Télécharger une image
-                    </span>
-                    <span className="text-gray-400 text-xs">
-                      PNG, JPG jusqu&apos;à 5MB
-                    </span>
-                  </div>
-                )}
+                    <Upload className="w-4 h-4 mr-2" />
+                    Changer
+                  </Button>
+                </div>
+                
+                <div className="relative">
+                  <Image
+                    src={bannerImage}
+                    alt="Bannière"
+                    width={400}
+                    height={100}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                </div>
 
                 <input
-                  ref={fileInputRef}
+                  ref={bannerInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleBannerUpload}
                   className="hidden"
                 />
               </div>
@@ -316,7 +308,7 @@ export default function CustomizationModal({
               <PostPreview
                 colors={colors}
                 selectedFont={selectedFont}
-                coverImage={coverImage}
+                coverImage={null}
               />
             </div>
           </div>

@@ -13,7 +13,8 @@ interface ThemeContextType {
   colors: ThemeColors;
   selectedFont: string;
   coverImageUrl: string | null;
-  updateTheme: (colors: ThemeColors, font: string, coverImage?: string | null) => void;
+  bannerImageUrl: string;
+  updateTheme: (colors: ThemeColors, font: string, coverImage?: string | null, bannerImage?: string) => void;
   loadUserTheme: (userId: string) => Promise<void>;
 }
 
@@ -30,12 +31,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [colors, setColors] = useState<ThemeColors>(defaultTheme);
   const [selectedFont, setSelectedFont] = useState("Helvetica");
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [bannerImageUrl, setBannerImageUrl] = useState<string>("/Bannière.svg");
 
-  const updateTheme = (newColors: ThemeColors, font: string, coverImage?: string | null) => {
+  const updateTheme = (newColors: ThemeColors, font: string, coverImage?: string | null, bannerImage?: string) => {
     setColors(newColors);
     setSelectedFont(font);
     if (coverImage !== undefined) {
       setCoverImageUrl(coverImage);
+    }
+    if (bannerImage !== undefined) {
+      setBannerImageUrl(bannerImage);
     }
   };
 
@@ -52,6 +57,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         });
         setSelectedFont(settings.selectedFont);
         setCoverImageUrl(settings.coverImageUrl);
+        setBannerImageUrl(settings.bannerImageUrl || "/Bannière.svg");
       }
     } catch (error) {
       console.error("Erreur lors du chargement du thème:", error);
@@ -64,6 +70,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         colors,
         selectedFont,
         coverImageUrl,
+        bannerImageUrl,
         updateTheme,
         loadUserTheme,
       }}
