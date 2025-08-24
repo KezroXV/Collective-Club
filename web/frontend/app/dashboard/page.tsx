@@ -7,7 +7,7 @@ import RolesSection from "@/components/RolesSection";
 import CategoriesSection from "@/components/CategoriesSection";
 import Link from "next/link";
 import { FileText, TrendingUp, Users, Home, HelpCircle } from "lucide-react";
-import CustomizationModal from "@/components/CustomizationModal";
+import CustomizationModal from "./components/CustomizationModal";
 
 export default function DashboardPage() {
   const [showCustomization, setShowCustomization] = useState(false);
