@@ -18,10 +18,6 @@ export async function getShopContext(request: NextRequest): Promise<ShopContext>
   const url = new URL(request.url);
   let shopDomain = url.searchParams.get('shop');
   
-  console.log("🔍 DEBUG shopIsolation:");
-  console.log("  URL:", request.url);
-  console.log("  shop param:", shopDomain);
-  console.log("  All search params:", Object.fromEntries(url.searchParams));
   
   // Vérifier dans les headers (Shopify peut envoyer dans des headers)
   if (!shopDomain) {
@@ -30,7 +26,6 @@ export async function getShopContext(request: NextRequest): Promise<ShopContext>
                          request.headers.get('shopify-shop-domain');
     if (shopifyDomain) {
       shopDomain = shopifyDomain;
-      console.log("  🎯 Found in headers:", shopDomain);
     }
   }
   
@@ -38,27 +33,32 @@ export async function getShopContext(request: NextRequest): Promise<ShopContext>
   if (!shopDomain) {
     // Vérifier les headers de referer ou host
     const referer = request.headers.get('referer');
-    console.log("  Referer:", referer);
     if (referer) {
       const refererUrl = new URL(referer);
       shopDomain = refererUrl.searchParams.get('shop');
-      console.log("  shop from referer:", shopDomain);
     }
   }
   
   // Vérifier dans le host/origin pour les apps Shopify
   if (!shopDomain) {
-    const host = request.headers.get('host');
     const origin = request.headers.get('origin');
-    console.log("  Host:", host);
-    console.log("  Origin:", origin);
     
     // Si l'origine contient myshopify.com, l'utiliser
     if (origin && origin.includes('.myshopify.com')) {
       const match = origin.match(/https?:\/\/([^.]+)\.myshopify\.com/);
       if (match) {
         shopDomain = `${match[1]}.myshopify.com`;
-        console.log("  🎯 Extracted from origin:", shopDomain);
+      }
+    }
+  }
+  
+  // Vérifier dans les cookies (pour les navigations internes)
+  if (!shopDomain) {
+    const cookies = request.headers.get('cookie');
+    if (cookies) {
+      const shopCookie = cookies.split(';').find(c => c.trim().startsWith('shopDomain='));
+      if (shopCookie) {
+        shopDomain = shopCookie.split('=')[1].trim();
       }
     }
   }
@@ -66,10 +66,7 @@ export async function getShopContext(request: NextRequest): Promise<ShopContext>
   // Dernière fallback pour le développement
   if (!shopDomain) {
     shopDomain = "collective-club-dev.myshopify.com";
-    console.log("  ⚠️ Using fallback:", shopDomain);
   }
-  
-  console.log("  ✅ Final shopDomain:", shopDomain);
   
   // Normaliser le shopDomain
   if (!shopDomain.includes('.myshopify.com')) {
@@ -95,9 +92,6 @@ export async function getShopContext(request: NextRequest): Promise<ShopContext>
       }
     });
     
-    console.log(`✅ Nouvelle boutique créée: ${shop.shopDomain} (ID: ${shop.id})`);
-  } else {
-    console.log(`🏪 Boutique trouvée: ${shop.shopDomain} (ID: ${shop.id})`);
   }
 
   return {
@@ -178,7 +172,6 @@ export async function createDefaultCategoriesForShop(shopId: string) {
     });
   }
 
-  console.log(`✅ Catégories par défaut créées pour la boutique ${shopId}`);
 }
 
 /**
@@ -204,6 +197,5 @@ export async function createDefaultAdminForShop(shopId: string, shopDomain: stri
     },
   });
 
-  console.log(`✅ Utilisateur admin créé pour la boutique ${shopId}: ${adminEmail}`);
   return adminUser;
 }

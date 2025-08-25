@@ -15,6 +15,7 @@ import CreatePostModal from "@/components/CreatePostModal";
 import { toast } from "sonner";
 import PollDisplay from "@/components/PollDisplay";
 import ThemeWrapper from "@/components/ThemeWrapper";
+import { useShopPersistence } from "@/lib/useShopPersistence";
 // ReactionPicker retiré pour n'afficher que coeur + commentaires
 
 interface Post {
@@ -61,6 +62,9 @@ export default function HomePage() {
 
   const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState("newest");
+  
+  // 🏪 Initialiser la persistance du shop
+  const { currentShop } = useShopPersistence();
   // Auth user detection
   useEffect(() => {
     const shop = searchParams.get("shop");
