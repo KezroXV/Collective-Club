@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// GET /api/posts/[id]/comments - Récupérer les commentaires d'un post
+// GET /api/posts/[id]/comments - Récupérer les commentaires d'un post (isolés par boutique)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { id } = await params; // ✅ AWAIT params !
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
+    const { postId } = await params;
 
     const comments = await prisma.comment.findMany({
-      where: { postId: id }, // ✅ Utiliser id au lieu de params.id
+      where: { 
+        postId,
+        shopId // ✅ FILTRER PAR BOUTIQUE
+      },
       include: {
         author: {
           select: { id: true, name: true, email: true, avatar: true },
@@ -31,13 +39,17 @@ export async function GET(
   }
 }
 
-// POST /api/posts/[id]/comments - Créer un commentaire
+// POST /api/posts/[id]/comments - Créer un commentaire (isolé par boutique)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { id } = await params; // ✅ AWAIT params !
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
+    const { postId } = await params;
     const body = await request.json();
     const { content, authorId } = body;
 
@@ -52,7 +64,8 @@ export async function POST(
       data: {
         content,
         authorId,
-        postId: id, // ✅ Utiliser id au lieu de params.id
+        postId,
+        shopId, // ✅ ASSOCIER À LA BOUTIQUE
       },
       include: {
         author: {

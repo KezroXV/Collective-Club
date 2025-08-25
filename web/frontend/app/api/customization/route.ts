@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// GET - Récupérer les paramètres de personnalisation
+// GET - Récupérer les paramètres de personnalisation (isolés par boutique)
 export async function GET(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
@@ -17,9 +22,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Vérifier que l'utilisateur existe dans cette boutique
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId, // userId est déjà l'ID de l'utilisateur
+        shopId // Vérifier qu'il appartient à cette boutique
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found in this shop" },
+        { status: 404 }
+      );
+    }
+
     // Récupérer ou créer les paramètres par défaut
     let settings = await prisma.customizationSettings.findUnique({
-      where: { userId },
+      where: { userId }, // Utiliser directement userId
     });
 
     // Si pas de paramètres existants, créer avec les valeurs par défaut
@@ -47,13 +67,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - Mettre à jour les paramètres de personnalisation (ADMIN ONLY)
+// PUT - Mettre à jour les paramètres de personnalisation (ADMIN ONLY, isolé par boutique)
 export async function PUT(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     
-    // Vérifier les droits admin
-    await requireAdmin(body.userId);
+    // Vérifier les droits admin dans cette boutique
+    await requireAdmin(body.userId, shopId);
     const {
       userId,
       colorPosts,

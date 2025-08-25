@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     const { pollId, optionId, userId } = body;
 
@@ -15,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier si l'utilisateur a déjà voté
+    // Vérifier si l'utilisateur a déjà voté (dans cette boutique)
     const existingVote = await prisma.pollVote.findUnique({
       where: {
         userId_pollId: {
@@ -43,6 +48,7 @@ export async function POST(request: NextRequest) {
           pollId,
           optionId,
           userId,
+          shopId, // ✅ ASSOCIER À LA BOUTIQUE
         },
       });
       return NextResponse.json(newVote, { status: 201 });
@@ -53,9 +59,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Récupérer le vote actuel de l'utilisateur pour un sondage
+// Récupérer le vote actuel de l'utilisateur pour un sondage (isolé par boutique)
 export async function GET(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const { searchParams } = new URL(request.url);
     const pollId = searchParams.get("pollId");
     const userId = searchParams.get("userId");
@@ -67,12 +77,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const vote = await prisma.pollVote.findUnique({
+    const vote = await prisma.pollVote.findFirst({
       where: {
-        userId_pollId: {
-          userId,
-          pollId,
-        },
+        userId,
+        pollId,
+        shopId, // ✅ FILTRER PAR BOUTIQUE
       },
     });
 
@@ -86,9 +95,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Supprimer le vote de l'utilisateur (toggle off)
+// Supprimer le vote de l'utilisateur (toggle off, isolé par boutique)
 export async function DELETE(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     const { pollId, userId } = body;
 
@@ -99,12 +112,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const existingVote = await prisma.pollVote.findUnique({
+    const existingVote = await prisma.pollVote.findFirst({
       where: {
-        userId_pollId: {
-          userId,
-          pollId,
-        },
+        userId,
+        pollId,
+        shopId, // ✅ CHERCHER DANS LA BOUTIQUE
       },
     });
 

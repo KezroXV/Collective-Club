@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// PUT - Modifier un badge (ADMIN ONLY)
+// PUT - Modifier un badge (ADMIN ONLY, isolé par boutique)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { badgeId: string } }
 ) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     const { badgeId } = params;
     
-    // Vérifier les droits admin
-    await requireAdmin(body.userId);
+    // Vérifier les droits admin dans cette boutique
+    await requireAdmin(body.userId, shopId);
     
     const { name, imageUrl, requiredCount, order } = body;
 
@@ -22,6 +27,21 @@ export async function PUT(
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      );
+    }
+
+    // Vérifier que le badge appartient à cette boutique
+    const existingBadge = await prisma.badge.findFirst({
+      where: { 
+        id: badgeId,
+        shopId // ✅ VÉRIFIER L'ISOLATION
+      }
+    });
+
+    if (!existingBadge) {
+      return NextResponse.json(
+        { error: "Badge not found in this shop" },
+        { status: 404 }
       );
     }
 
@@ -53,12 +73,16 @@ export async function PUT(
   }
 }
 
-// DELETE - Supprimer un badge (ADMIN ONLY)
+// DELETE - Supprimer un badge (ADMIN ONLY, isolé par boutique)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { badgeId: string } }
 ) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const { badgeId } = params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
@@ -70,17 +94,20 @@ export async function DELETE(
       );
     }
     
-    // Vérifier les droits admin
-    await requireAdmin(userId);
+    // Vérifier les droits admin dans cette boutique
+    await requireAdmin(userId, shopId);
     
-    // Vérifier que le badge n'est pas par défaut
-    const badge = await prisma.badge.findUnique({
-      where: { id: badgeId }
+    // Vérifier que le badge appartient à cette boutique et n'est pas par défaut
+    const badge = await prisma.badge.findFirst({
+      where: { 
+        id: badgeId,
+        shopId // ✅ VÉRIFIER L'ISOLATION
+      }
     });
 
     if (!badge) {
       return NextResponse.json(
-        { error: "Badge not found" },
+        { error: "Badge not found in this shop" },
         { status: 404 }
       );
     }

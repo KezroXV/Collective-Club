@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
@@ -8,8 +9,15 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const post = await prisma.post.findUnique({
-      where: { id: params.postId },
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
+    const post = await prisma.post.findFirst({
+      where: { 
+        id: params.postId,
+        shopId // ✅ VÉRIFIER L'ISOLATION
+      },
       include: {
         author: {
           select: { id: true, name: true, email: true, avatar: true },
@@ -48,7 +56,7 @@ export async function GET(
     });
 
     if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return NextResponse.json({ error: "Post not found in this shop" }, { status: 404 });
     }
 
     return NextResponse.json(post);

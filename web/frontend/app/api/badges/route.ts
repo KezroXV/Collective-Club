@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// GET - Récupérer tous les badges d'un utilisateur
+// GET - Récupérer tous les badges d'un utilisateur (isolés par boutique)
 export async function GET(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
@@ -18,7 +23,10 @@ export async function GET(request: NextRequest) {
     }
 
     const badges = await prisma.badge.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        shopId // ✅ FILTRER PAR BOUTIQUE
+      },
       orderBy: { order: "asc" },
     });
 
@@ -32,13 +40,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Créer un nouveau badge (ADMIN ONLY)
+// POST - Créer un nouveau badge (ADMIN ONLY, isolé par boutique)
 export async function POST(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     
-    // Vérifier les droits admin
-    await requireAdmin(body.userId);
+    // Vérifier les droits admin dans cette boutique
+    await requireAdmin(body.userId, shopId);
     
     const { userId, name, imageUrl, requiredCount, order } = body;
 
@@ -57,6 +69,7 @@ export async function POST(request: NextRequest) {
         requiredCount,
         order: order || 0,
         isDefault: false,
+        shopId, // ✅ ASSOCIER À LA BOUTIQUE
       },
     });
 

@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const categories = await prisma.category.findMany({
-      where: { isActive: true },
+      where: { 
+        isActive: true,
+        shopId // ✅ FILTRER PAR BOUTIQUE
+      },
       include: {
         _count: {
           select: { posts: true },
@@ -28,10 +36,36 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     
-    // Vérifier les droits admin
-    await requireAdmin(body.userId);
+    // Récupérer ou utiliser l'utilisateur admin par défaut de cette boutique
+    let userId = body.userId;
+    
+    if (!userId) {
+      // Trouver un admin dans cette boutique comme fallback
+      const adminUser = await prisma.user.findFirst({
+        where: {
+          shopId,
+          role: "ADMIN"
+        }
+      });
+      
+      if (!adminUser) {
+        return NextResponse.json(
+          { error: "No admin user found in this shop" },
+          { status: 403 }
+        );
+      }
+      
+      userId = adminUser.id;
+    }
+    
+    // Vérifier les droits admin dans cette boutique
+    await requireAdmin(userId, shopId);
     const { name, color, description, order } = body;
 
     if (!name || !color) {
@@ -47,6 +81,7 @@ export async function POST(request: NextRequest) {
         color,
         description,
         order: order || 0,
+        shopId, // ✅ ASSOCIER À LA BOUTIQUE
       },
     });
 

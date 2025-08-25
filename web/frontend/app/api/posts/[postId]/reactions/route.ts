@@ -1,19 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// GET /api/posts/[id]/reactions - Récupérer les réactions d'un post
+// GET /api/posts/[id]/reactions - Récupérer les réactions d'un post (isolées par boutique)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { id } = await params;
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
+    const { postId } = await params;
 
     const reactions = await prisma.reaction.findMany({
-      where: { postId: id },
+      where: { 
+        postId,
+        shopId // ✅ FILTRER PAR BOUTIQUE
+      },
       include: {
         user: {
           select: { id: true, name: true, email: true },
@@ -40,13 +48,17 @@ export async function GET(
   }
 }
 
-// POST /api/posts/[id]/reactions - Ajouter/enlever une réaction
+// POST /api/posts/[id]/reactions - Ajouter/enlever une réaction (isolée par boutique)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { id } = await params;
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
+    const { postId } = await params;
     const body = await request.json();
     const { type, userId } = body;
 
@@ -57,11 +69,12 @@ export async function POST(
       );
     }
 
-    // Vérifier si l'user a déjà réagi
+    // Vérifier si l'user a déjà réagi (dans cette boutique)
     const existingReaction = await prisma.reaction.findFirst({
       where: {
-        postId: id,
-        userId: userId,
+        postId,
+        userId,
+        shopId, // ✅ VÉRIFIER DANS LA BOUTIQUE
       },
     });
 
@@ -89,7 +102,8 @@ export async function POST(
         data: {
           type,
           userId,
-          postId: id,
+          postId,
+          shopId, // ✅ ASSOCIER À LA BOUTIQUE
         },
       });
       return NextResponse.json({ action: "created", reaction: newReaction });

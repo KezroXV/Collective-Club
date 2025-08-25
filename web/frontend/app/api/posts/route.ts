@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getShopId, ensureShopIsolation } from "@/lib/shopIsolation";
 
 const prisma = new PrismaClient();
 
-// GET /api/posts - Récupérer tous les posts avec sondages
-export async function GET() {
+// GET /api/posts - Récupérer tous les posts avec sondages (isolés par boutique)
+export async function GET(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const posts = await prisma.post.findMany({
+      where: { shopId }, // ✅ FILTRER PAR BOUTIQUE
       include: {
         author: {
           select: { id: true, name: true, email: true, avatar: true },
@@ -56,9 +62,13 @@ export async function GET() {
   }
 }
 
-// POST /api/posts - Créer un nouveau post avec sondage
+// POST /api/posts - Créer un nouveau post avec sondage (isolé par boutique)
 export async function POST(request: NextRequest) {
   try {
+    // 🏪 ISOLATION MULTI-TENANT
+    const shopId = await getShopId(request);
+    ensureShopIsolation(shopId);
+
     const body = await request.json();
     const { title, content, imageUrl, category, authorId, poll } = body; // ✅ AJOUTER poll
 
@@ -69,11 +79,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convertir category (nom) en categoryId
+    // Convertir category (nom) en categoryId avec isolation par boutique
     let categoryId = null;
     if (category) {
       const foundCategory = await prisma.category.findUnique({
-        where: { name: category },
+        where: { 
+          shopId_name: {
+            shopId,
+            name: category,
+          }
+        },
       });
       if (foundCategory) {
         categoryId = foundCategory.id;
@@ -88,15 +103,18 @@ export async function POST(request: NextRequest) {
         imageUrl,
         categoryId,
         authorId,
+        shopId, // ✅ ASSOCIER À LA BOUTIQUE
         // ✅ CRÉER LE SONDAGE SI FOURNI
         ...(poll && {
           poll: {
             create: {
               question: poll.question,
+              shopId, // ✅ ASSOCIER LE SONDAGE À LA BOUTIQUE
               options: {
                 create: poll.options.map((option: any, index: number) => ({
                   text: option.text,
                   order: index,
+                  shopId, // ✅ ASSOCIER CHAQUE OPTION À LA BOUTIQUE
                 })),
               },
             },
