@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "admin": "tsx scripts/ensure-admin.ts",
+    "recovery": "tsx scripts/data-recovery.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
