@@ -22,7 +22,10 @@ import PollDisplay from "@/components/PollDisplay";
 import ThemeWrapper from "@/components/ThemeWrapper";
 import { MobileNavigation } from "@/components/ui/mobile-drawer";
 import { LoadingState, LoadingCard } from "@/components/ui/loading";
-import { StaggeredList, AnimatedContainer } from "@/components/ui/animated-container";
+import {
+  StaggeredList,
+  AnimatedContainer,
+} from "@/components/ui/animated-container";
 interface Post {
   id: string;
   title: string;
@@ -115,7 +118,7 @@ export default function CommunityPage() {
       console.error("Error fetching posts:", error);
     }
   };
-
+  
   const createPost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.title || !newPost.content || !currentUser) return;
@@ -225,7 +228,9 @@ export default function CommunityPage() {
                 </Link>
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl md:text-3xl font-bold">Forum Communautaire</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  Forum Communautaire
+                </h1>
                 <p className="text-muted-foreground text-sm md:text-base">
                   Partagez vos idées et discutez • {posts.length} posts
                 </p>
@@ -259,7 +264,9 @@ export default function CommunityPage() {
                     <p className="font-semibold text-green-800 text-sm md:text-base">
                       Connecté en tant que {currentUser.name}
                     </p>
-                    <p className="text-xs md:text-sm text-green-600">{currentUser.email}</p>
+                    <p className="text-xs md:text-sm text-green-600">
+                      {currentUser.email}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -272,7 +279,9 @@ export default function CommunityPage() {
           <AnimatedContainer animation="scaleIn" delay={50}>
             <Card className="mb-8">
               <CardHeader className="pb-3 md:pb-6">
-                <CardTitle className="text-lg md:text-xl">Créer un nouveau post</CardTitle>
+                <CardTitle className="text-lg md:text-xl">
+                  Créer un nouveau post
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={createPost} className="space-y-4">
@@ -294,7 +303,11 @@ export default function CommunityPage() {
                     }
                   />
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Button type="submit" disabled={loading} className="flex-1 sm:flex-none">
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 sm:flex-none"
+                    >
                       {loading ? "Publication..." : "Publier"}
                     </Button>
                     <Button
@@ -316,9 +329,9 @@ export default function CommunityPage() {
         <AnimatedContainer animation="slideUp" delay={150}>
           <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input 
-              placeholder="Rechercher des posts..." 
-              className="pl-10 text-sm md:text-base" 
+            <Input
+              placeholder="Rechercher des posts..."
+              className="pl-10 text-sm md:text-base"
             />
           </div>
         </AnimatedContainer>
@@ -345,8 +358,12 @@ export default function CommunityPage() {
                   <p className="text-muted-foreground mb-4 text-sm md:text-base">
                     Soyez le premier à partager quelque chose !
                   </p>
+                  
                   {currentUser && (
-                    <Button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto">
+                    <Button
+                      onClick={() => setShowCreateForm(true)}
+                      className="w-full sm:w-auto"
+                    >
                       Créer le premier post
                     </Button>
                   )}
@@ -357,7 +374,10 @@ export default function CommunityPage() {
         >
           <StaggeredList staggerDelay={100}>
             {posts.map((post) => (
-              <Card key={post.id} className="hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+              <Card
+                key={post.id}
+                className="hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+              >
                 <CardHeader className="pb-3 md:pb-4">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                     <div className="flex items-start gap-2 md:gap-3 flex-1">
@@ -375,7 +395,10 @@ export default function CommunityPage() {
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs self-start flex-shrink-0">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs self-start flex-shrink-0"
+                    >
                       Nouveau
                     </Badge>
                   </div>
@@ -410,7 +433,9 @@ export default function CommunityPage() {
                       }}
                     >
                       <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-                      <span className="hidden sm:inline">{post._count.comments} commentaires</span>
+                      <span className="hidden sm:inline">
+                        {post._count.comments} commentaires
+                      </span>
                       <span className="sm:hidden">{post._count.comments}</span>
                     </Button>
                     <ReactionPicker
@@ -422,8 +447,13 @@ export default function CommunityPage() {
 
                   {/* Comments Section */}
                   {selectedPost === post.id && (
-                    <AnimatedContainer animation="slideUp" className="mt-4 md:mt-6 pt-4 md:pt-6 border-t">
-                      <h4 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Commentaires</h4>
+                    <AnimatedContainer
+                      animation="slideUp"
+                      className="mt-4 md:mt-6 pt-4 md:pt-6 border-t"
+                    >
+                      <h4 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">
+                        Commentaires
+                      </h4>
 
                       {/* Comment Form */}
                       {currentUser && (
@@ -435,7 +465,11 @@ export default function CommunityPage() {
                               onChange={(e) => setNewComment(e.target.value)}
                               className="flex-1 text-sm md:text-base"
                             />
-                            <Button type="submit" size="sm" className="sm:w-auto w-full">
+                            <Button
+                              type="submit"
+                              size="sm"
+                              className="sm:w-auto w-full"
+                            >
                               <Send className="h-3 w-3 md:h-4 md:w-4 mr-1 sm:mr-0" />
                               <span className="sm:hidden">Envoyer</span>
                             </Button>
@@ -446,7 +480,7 @@ export default function CommunityPage() {
                       {/* Comments List */}
                       <div className="space-y-2 md:space-y-3">
                         {comments.map((comment, index) => (
-                          <AnimatedContainer 
+                          <AnimatedContainer
                             key={comment.id}
                             animation="slideUp"
                             delay={index * 50}
@@ -467,7 +501,9 @@ export default function CommunityPage() {
                                     {formatDate(comment.createdAt)}
                                   </span>
                                 </div>
-                                <p className="text-xs md:text-sm break-words">{comment.content}</p>
+                                <p className="text-xs md:text-sm break-words">
+                                  {comment.content}
+                                </p>
                               </div>
                             </div>
                           </AnimatedContainer>
